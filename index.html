@@ -4,377 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Qualiconsult Habitations</title>
-    <style>
-        /* CSS Reset & Variables */
-        :root {
-            --primary: #2563eb;
-            --primary-light: #eff6ff;
-            --primary-hover: #1d4ed8;
-            --bg-color: #f3f4f6;
-            --surface: #ffffff;
-            --text-main: #1f2937;
-            --text-muted: #6b7280;
-            --border: #e5e7eb;
-            --success-bg: #d1fae5;
-            --success-text: #065f46;
-            --warning-bg: #fef3c7;
-            --warning-text: #92400e;
-            --danger-bg: #fee2e2;
-            --danger-text: #b91c1c;
-        }
-
-        * { box-sizing: border-box; }
-
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            background-color: var(--bg-color); 
-            color: var(--text-main); 
-        }
-
-        .app-shell { display: flex; height: 100vh; overflow: hidden; }
-
-        /* Sidebar */
-        .sidebar { 
-            width: 320px; 
-            background: var(--surface); 
-            border-right: 1px solid var(--border); 
-            padding: 24px; 
-            overflow-y: auto; 
-            display: flex;
-            flex-direction: column;
-        }
-        .sidebar h2 { margin: 0; font-size: 20px; }
-        .sidebar p { margin: 4px 0 24px 0; font-size: 14px; color: var(--text-muted); }
-        .nav-item {
-            padding: 12px;
-            background: var(--bg-color);
-            border-radius: 8px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--text-main);
-            border: 1px solid transparent;
-        }
-        .nav-item.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary-hover); }
-
-        /* Main Content */
-        .main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
-        
-        .topbar { 
-            background: var(--surface); 
-            padding: 16px 32px; 
-            border-bottom: 1px solid var(--border); 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            font-weight: 500;
-        }
-
-        .content { padding: 32px; max-width: 900px; margin: 0 auto; width: 100%; }
-
-        /* Banner */
-        .classification-banner { 
-            padding: 20px 24px; 
-            border-radius: 12px; 
-            margin-bottom: 32px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 8px; 
-            border-left: 6px solid;
-        }
-        .classification-banner.success { background-color: var(--success-bg); color: var(--success-text); border-color: #10b981; }
-        .classification-banner.warning { background-color: var(--warning-bg); color: var(--warning-text); border-color: #f59e0b; }
-        .classification-banner.danger { background-color: var(--danger-bg); color: var(--danger-text); border-color: #ef4444; }
-
-        .banner-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; opacity: 0.8; }
-        .banner-title { font-size: 24px; font-weight: 700; margin: 0; }
-        .banner-detail { margin: 0; font-size: 15px; }
-
-        /* Cards & Forms */
-        .card { 
-            background: var(--surface); 
-            border-radius: 12px; 
-            padding: 32px; 
-            margin-bottom: 32px; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
-            border: 1px solid var(--border);
-        }
-        .card h2 { margin: 0 0 8px 0; font-size: 20px; }
-        .card > p { margin: 0 0 24px 0; color: var(--text-muted); font-size: 15px; }
-
-        .field-grid { display: grid; gap: 24px; margin-top: 16px; }
-        .field-grid.two { grid-template-columns: 1fr 1fr; }
-        
-        label { display: flex; flex-direction: column; font-weight: 600; font-size: 14px; color: var(--text-main); }
-        input[type="text"], input[type="number"] { 
-            padding: 12px; 
-            border: 1px solid #d1d5db; 
-            border-radius: 8px; 
-            margin-top: 8px; 
-            font-size: 16px; 
-            font-family: inherit;
-            transition: border-color 0.15s;
-        }
-        input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
-
-        .choices { display: flex; gap: 12px; margin-top: 12px; }
-        .choice { 
-            flex: 1;
-            padding: 12px 16px; 
-            border: 1px solid #d1d5db; 
-            border-radius: 8px; 
-            background: var(--surface); 
-            cursor: pointer; 
-            font-weight: 600;
-            font-size: 15px;
-            color: var(--text-main);
-            transition: all 0.15s;
-        }
-        .choice:hover { background: #f9fafb; }
-        .choice.selected { 
-            border-color: var(--primary); 
-            background: var(--primary-light); 
-            color: var(--primary-hover); 
-        }
-
-        .question { padding: 24px 0; border-bottom: 1px solid var(--border); }
-        .question:last-child { border-bottom: none; padding-bottom: 0; }
-        .question:first-child { padding-top: 0; }
-        .question h3 { margin: 0 0 6px 0; font-size: 16px; }
-        .question p { margin: 0; font-size: 14px; color: var(--text-muted); }
-
-        /* Conditional hide */
-        #q-banded, #q-stairDistance, #q-ladderAccess { display: none; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-shell">
         <aside class="sidebar">
             <h2>Qualiconsult Habitations</h2>
             <p>Assistant de sécurité incendie</p>
-            
             <nav id="nav-chapters">
                 <div class="nav-item active">01. Classement</div>
-                <div class="nav-item">02. Structure</div>
-                <div class="nav-item">03. Parois</div>
-                <div class="nav-item">04. Celliers & caves</div>
+                <div class="nav-item">02. Structure & Parois</div>
+                <div class="nav-item">03. Celliers & Isolations</div>
+                <div class="nav-item">04. Escaliers & Façades</div>
             </nav>
         </aside>
 
         <main class="main">
             <header class="topbar">
-                <div style="color: var(--text-muted);">Projet actif: <strong id="display-project-name" style="color: var(--text-main); margin-left: 8px;"></strong></div>
-                <button style="padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border); background: white; cursor: pointer;">Rapport PDF</button>
+                <div class="project-indicator">Projet actif: <strong id="display-project-name">Résidence Les Jardins</strong></div>
+                <button class="btn-report" onclick="window.print()">Rapport PDF</button>
             </header>
 
             <div class="content">
-                <!-- Classification Banner -->
+                <!-- Bannière de résultat principal -->
                 <section class="classification-banner" id="banner">
                     <div>
                         <span class="banner-label">Classement calculé</span> 
-                        <h1 class="banner-title" id="calc-family"></h1>
+                        <h1 class="banner-title" id="calc-family">En attente...</h1>
                     </div>
                     <p class="banner-detail" id="calc-detail"></p>
                 </section>
 
-                <!-- Project ID Card -->
-                <section class="card">
-                    <h2>Identification du projet</h2>
-                    <p>Ces informations apparaîtront dans le rapport final.</p>
+                <!-- Formulaire simplifié pour l'exemple -->
+                <section class="card questionnaire">
+                    <h2>Données du projet (Sélection)</h2>
+                    <p>Modifiez ces paramètres pour tester le moteur de règles.</p>
+                    
                     <div class="field-grid two">
                         <label>
-                            Nom du projet / Adresse
-                            <input type="text" id="inp-projectName" value="Résidence Les Jardins — Lyon 7e">
+                            Habitation collective ?
+                            <select id="inp-typeHabitat">
+                                <option value="oui">Oui</option>
+                                <option value="non">Non</option>
+                            </select>
                         </label>
                         <label>
-                            Architecte
-                            <input type="text" id="inp-architect" value="Atelier Horizon">
+                            Maison en bande ?
+                            <select id="inp-enBande">
+                                <option value="non">Non</option>
+                                <option value="oui">Oui</option>
+                            </select>
+                        </label>
+                        <label>
+                            Nombre d'étages (R+)
+                            <input type="number" id="inp-nbEtages" value="3" min="0">
+                        </label>
+                        <label>
+                            Hauteur plancher bas (m)
+                            <input type="number" id="inp-hauteur" value="9" min="0" step="0.5">
+                        </label>
+                        <label>
+                            Distance max escalier (m)
+                            <input type="number" id="inp-distEscalier" value="10" min="0" step="0.5">
+                        </label>
+                        <label>
+                            Voie échelle accessible ?
+                            <select id="inp-voieEchelle">
+                                <option value="oui">Oui</option>
+                                <option value="non">Non</option>
+                            </select>
                         </label>
                     </div>
                 </section>
 
-                <!-- Questionnaire Card -->
-                <section class="card questionnaire">
-                    <h2>Questions de classement</h2>
-                    <p>Arrêté du 31 janvier 1986 modifié.</p>
-                    
-                    <div class="question-list">
-                        <!-- Q1 -->
-                        <div class="question" id="q-collective">
-                            <h3>Le bâtiment comporte-t-il des logements superposés ?</h3>
-                            <p>Une réponse positive caractérise une habitation collective.</p>
-                            <div class="choices">
-                                <button class="choice" data-field="collective" data-value="Oui">Oui</button>
-                                <button class="choice" data-field="collective" data-value="Non">Non</button>
-                            </div>
-                        </div>
-
-                        <!-- Q1b (Conditional) -->
-                        <div class="question" id="q-banded">
-                            <h3>La maison est-elle construite en bande ?</h3>
-                            <p>Sinon, elle sera considérée isolée ou jumelée.</p>
-                            <div class="choices">
-                                <button class="choice" data-field="banded" data-value="Oui">Oui</button>
-                                <button class="choice" data-field="banded" data-value="Non">Non</button>
-                            </div>
-                        </div>
-
-                        <!-- Q2 -->
-                        <div class="question" id="q-floors">
-                            <h3>Nombre d’étages au-dessus du rez-de-chaussée</h3>
-                            <p>Exemple : R+3 correspond à 3 étages.</p>
-                            <label><input type="number" id="inp-floors" value="3" min="0"></label>
-                        </div>
-
-                        <!-- Q3 -->
-                        <div class="question" id="q-height">
-                            <h3>Hauteur du plancher bas du logement le plus haut</h3>
-                            <p>Mesurée depuis le sol accessible aux engins de secours (en mètres).</p>
-                            <label><input type="number" id="inp-height" value="9" min="0" step="0.5"></label>
-                        </div>
-
-                        <!-- Q4 (Conditional) -->
-                        <div class="question" id="q-stairDistance">
-                            <h3>Distance maximale entre porte palière et escalier</h3>
-                            <p>Mesure à l’étage, depuis la porte la plus éloignée (en mètres).</p>
-                            <label><input type="number" id="inp-stairDistance" value="10" min="0" step="0.5"></label>
-                        </div>
-
-                        <!-- Q5 (Conditional) -->
-                        <div class="question" id="q-ladderAccess">
-                            <h3>Les escaliers sont-ils accessibles depuis une voie échelle au RDC ?</h3>
-                            <p>Voie permettant l’intervention des camions échelle.</p>
-                            <div class="choices">
-                                <button class="choice" data-field="ladderAccess" data-value="Oui">Oui</button>
-                                <button class="choice" data-field="ladderAccess" data-value="Non">Non</button>
-                            </div>
-                        </div>
-                    </div>
+                <!-- Affichage des résultats du moteur de règles -->
+                <section class="card results-card">
+                    <h2>Analyse Réglementaire Détaillée</h2>
+                    <div id="analysis-results"></div>
                 </section>
             </div>
         </main>
     </div>
-
-    <script>
-        // State initialized with values from original code
-        let project = {
-            projectName: "Résidence Les Jardins — Lyon 7e",
-            architect: "Atelier Horizon",
-            collective: "Oui",
-            banded: "Non",
-            floors: 3,
-            height: 9,
-            stairDistance: 10,
-            ladderAccess: "Oui"
-        };
-
-        // Core logic derived from classify() in original code
-        function classify(proj) {
-            if (proj.height > 50) {
-                return { family: "IGH — hors périmètre", detail: "La hauteur dépasse 50 m : réglementation spécifique IGH.", tone: "danger" };
-            }
-            if (proj.height > 28) {
-                return { family: "4e famille", detail: "Habitation collective dont le plancher bas le plus haut est situé entre 28 m et 50 m.", tone: "warning" };
-            }
-            if (proj.collective === "Non") {
-                if (proj.floors <= 1) {
-                    return { 
-                        family: "1re famille", 
-                        detail: proj.banded === "Oui" ? "Maison individuelle R+1 en bande." : "Maison individuelle isolée ou jumelée, RDC ou R+1.", 
-                        tone: "success" 
-                    };
-                }
-                return { 
-                    family: "2e famille", 
-                    detail: proj.banded === "Oui" ? "Maison individuelle en bande, R+2 ou plus." : "Maison individuelle isolée ou jumelée, R+2 ou plus.", 
-                    tone: "success" 
-                };
-            }
-            if (proj.floors <= 3) {
-                return { 
-                    family: "2e famille", 
-                    detail: (proj.floors === 3 && proj.height > 8) ? "Habitation collective R+3, plancher bas supérieur à 8 m." : "Habitation collective jusqu’à R+3.", 
-                    tone: "success" 
-                };
-            }
-            if (proj.stairDistance > 15) {
-                return { family: "Non conforme", detail: `La distance porte palière / escalier (${proj.stairDistance} m) dépasse 15 m.`, tone: "danger" };
-            }
-            if (proj.floors <= 7 && proj.stairDistance <= 10 && proj.ladderAccess === "Oui") {
-                return { family: "3e famille A", detail: "Toutes les conditions de classement en 3e famille A sont remplies.", tone: "success" };
-            }
-            
-            const reasons = [];
-            if (proj.floors > 7) reasons.push("bâtiment au-delà de R+7");
-            if (proj.stairDistance > 10) reasons.push("distance à l’escalier supérieure à 10 m");
-            if (proj.ladderAccess === "Non") reasons.push("voie échelle non accessible");
-            
-            return { family: "3e famille B", detail: `Condition(s) de la 3e famille A non remplie(s) : ${reasons.join(", ")}.`, tone: "warning" };
-        }
-
-        // Render UI based on state
-        function updateUI() {
-            // Update textual info
-            document.getElementById('inp-projectName').value = project.projectName;
-            document.getElementById('display-project-name').textContent = project.projectName || 'Sans nom';
-            document.getElementById('inp-architect').value = project.architect;
-            document.getElementById('inp-floors').value = project.floors;
-            document.getElementById('inp-height').value = project.height;
-            document.getElementById('inp-stairDistance').value = project.stairDistance;
-
-            // Update choice buttons
-            document.querySelectorAll('.choice').forEach(btn => {
-                const field = btn.getAttribute('data-field');
-                const val = btn.getAttribute('data-value');
-                if (project[field] === val) {
-                    btn.classList.add('selected');
-                } else {
-                    btn.classList.remove('selected');
-                }
-            });
-
-            // Conditional visibility of questions
-            const isNonCollective = (project.collective === 'Non');
-            document.getElementById('q-banded').style.display = isNonCollective ? 'block' : 'none';
-            
-            const showStairQuestions = (project.collective === 'Oui' && project.floors > 3 && project.height <= 28);
-            document.getElementById('q-stairDistance').style.display = showStairQuestions ? 'block' : 'none';
-            document.getElementById('q-ladderAccess').style.display = showStairQuestions ? 'block' : 'none';
-
-            // Calculate and update banner
-            const result = classify(project);
-            const banner = document.getElementById('banner');
-            banner.className = 'classification-banner ' + result.tone;
-            document.getElementById('calc-family').textContent = result.family;
-            document.getElementById('calc-detail').textContent = result.detail;
-        }
-
-        // Event Listeners for inputs
-        document.querySelectorAll('input[type="text"], input[type="number"]').forEach(inp => {
-            inp.addEventListener('input', (e) => {
-                const field = e.target.id.replace('inp-', '');
-                if (['floors', 'height', 'stairDistance'].includes(field)) {
-                    project[field] = Number(e.target.value) || 0;
-                } else {
-                    project[field] = e.target.value;
-                }
-                updateUI();
-            });
-        });
-
-        // Event Listeners for buttons
-        document.querySelectorAll('.choice').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const field = e.target.getAttribute('data-field');
-                const val = e.target.getAttribute('data-value');
-                project[field] = val;
-                updateUI();
-            });
-        });
-
-        // Initial render
-        updateUI();
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
