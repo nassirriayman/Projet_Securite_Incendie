@@ -157,6 +157,7 @@ export default function Home() {
   const [active, setActive] = useState("classification");
   const [saved, setSaved] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [analysisStarted, setAnalysisStarted] = useState(false);
   const result = useMemo(() => classify(project), [project]);
 
   const compliance = useMemo(() => {
@@ -243,6 +244,35 @@ export default function Home() {
   const activeModule = useMemo(() => getModuleConfig(active, compliance.context, answers), [active, answers, compliance.context]);
   const activeIssueCount = compliance.counts[active] ?? 0;
 
+  const startAnalysis = () => {
+    setActive("classification");
+    setAnalysisStarted(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  if (!analysisStarted) {
+    return (
+      <main className="welcome-screen screen-app">
+        <section className="site-hero welcome-hero">
+          <figure className="site-hero-visual">
+            <Image src="/qualiconsult-construction-hero.jpg" alt="Experts du Groupe Qualiconsult sur un chantier" width={2033} height={560} priority />
+            <figcaption><span>Expertise construction</span><strong>Groupe Qualiconsult</strong><small>Prévention · Contrôle · Accompagnement</small></figcaption>
+          </figure>
+          <div className="site-hero-copy">
+            <div className="hero-brand-card"><Image className="hero-brand-logo" src="/qualiconsult-logo.png" alt="Groupe Qualiconsult" width={456} height={256} priority /></div>
+            <span className="eyebrow">Arrêté du 31 janvier 1986 modifié</span>
+            <h1>Sécurité incendie<br /><em>des bâtiments d’habitation</em></h1>
+            <p>Un outil d’aide à l’analyse réglementaire pour identifier les exigences applicables, documenter les points conformes et traiter les écarts.</p>
+            <div className="hero-actions">
+              <button className="hero-cta" type="button" onClick={startAnalysis}>Démarrer l’analyse<Icon name="arrow" /></button>
+              <span>Étude enregistrée automatiquement</span>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <>
     <div className={`app-shell screen-app ${sidebarOpen ? "" : "sidebar-closed"}`}>
@@ -265,30 +295,13 @@ export default function Home() {
 
       <main className="main">
         <header className="topbar">
-          <div className="breadcrumbs">{!sidebarOpen && <button className="sidebar-reopen" type="button" onClick={() => setSidebarOpen(true)} aria-label="Ouvrir la barre latérale"><Icon name="menu" />Menu</button>}<button type="button" onClick={() => setActive("classification")}><Icon name="home" /></button><span>/</span><span>Qualiconsult Habitations</span><span>/</span><strong>{activeChapter.title}</strong></div>
+          <div className="breadcrumbs">{!sidebarOpen && <button className="sidebar-reopen" type="button" onClick={() => setSidebarOpen(true)} aria-label="Ouvrir la barre latérale"><Icon name="menu" />Menu</button>}<button type="button" onClick={() => { setAnalysisStarted(false); window.scrollTo({ top: 0, behavior: "smooth" }); }} aria-label="Revenir à l’accueil" title="Revenir à l’accueil"><Icon name="home" /></button><span>/</span><span>Qualiconsult Habitations</span><span>/</span><strong>{activeChapter.title}</strong></div>
           <div className="top-actions"><span className={`save-state ${saved ? "saved" : ""}`}><Icon name="save" />{saved ? "Enregistré" : "Enregistrement…"}</span><button className="outline-button" type="button" onClick={() => window.print()}><Icon name="report" />Rapport PDF</button></div>
         </header>
 
         <div className="content">
           {active === "classification" ? (
             <>
-              <section className="site-hero">
-                <figure className="site-hero-visual">
-                  <Image src="/qualiconsult-construction-hero.jpg" alt="Experts du Groupe Qualiconsult sur un chantier" width={2033} height={560} priority />
-                  <figcaption><span>Expertise construction</span><strong>Groupe Qualiconsult</strong><small>Prévention · Contrôle · Accompagnement</small></figcaption>
-                </figure>
-                <div className="site-hero-copy">
-                  <div className="hero-brand-card"><Image className="hero-brand-logo" src="/qualiconsult-logo.png" alt="Groupe Qualiconsult" width={456} height={256} priority /></div>
-                  <span className="eyebrow">Arrêté du 31 janvier 1986 modifié</span>
-                  <h1>Sécurité incendie<br /><em>des bâtiments d’habitation</em></h1>
-                  <p>Un outil d’aide à l’analyse réglementaire pour identifier les exigences applicables, documenter les points conformes et traiter les écarts.</p>
-                  <div className="hero-actions">
-                    <button className="hero-cta" type="button" onClick={() => document.getElementById("project-identification")?.scrollIntoView({ behavior: "smooth" })}>Démarrer l’analyse<Icon name="arrow" /></button>
-                    <span>Étude enregistrée automatiquement</span>
-                  </div>
-                </div>
-              </section>
-
               <section className={`classification-banner ${result.tone}`}>
                 <div><span>Classement calculé</span><strong>{result.family}</strong></div><p>{result.detail}</p><span className="classification-live"><Icon name={result.tone === "danger" ? "alert" : "check"} />Analyse mise à jour instantanément</span>
               </section>
