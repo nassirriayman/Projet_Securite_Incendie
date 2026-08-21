@@ -1,90 +1,14 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Qualiconsult Habitations</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="app-shell">
-        <aside class="sidebar">
-            <h2>Qualiconsult Habitations</h2>
-            <p>Assistant de sécurité incendie</p>
-            <nav id="nav-chapters">
-                <div class="nav-item active">01. Classement</div>
-                <div class="nav-item">02. Structure & Parois</div>
-                <div class="nav-item">03. Celliers & Isolations</div>
-                <div class="nav-item">04. Escaliers & Façades</div>
-            </nav>
-        </aside>
-
-        <main class="main">
-            <header class="topbar">
-                <div class="project-indicator">Projet actif: <strong id="display-project-name">Résidence Les Jardins</strong></div>
-                <button class="btn-report" onclick="window.print()">Rapport PDF</button>
-            </header>
-
-            <div class="content">
-                <!-- Bannière de résultat principal -->
-                <section class="classification-banner" id="banner">
-                    <div>
-                        <span class="banner-label">Classement calculé</span> 
-                        <h1 class="banner-title" id="calc-family">En attente...</h1>
-                    </div>
-                    <p class="banner-detail" id="calc-detail"></p>
-                </section>
-
-                <!-- Formulaire simplifié pour l'exemple -->
-                <section class="card questionnaire">
-                    <h2>Données du projet (Sélection)</h2>
-                    <p>Modifiez ces paramètres pour tester le moteur de règles.</p>
-                    
-                    <div class="field-grid two">
-                        <label>
-                            Habitation collective ?
-                            <select id="inp-typeHabitat">
-                                <option value="oui">Oui</option>
-                                <option value="non">Non</option>
-                            </select>
-                        </label>
-                        <label>
-                            Maison en bande ?
-                            <select id="inp-enBande">
-                                <option value="non">Non</option>
-                                <option value="oui">Oui</option>
-                            </select>
-                        </label>
-                        <label>
-                            Nombre d'étages (R+)
-                            <input type="number" id="inp-nbEtages" value="3" min="0">
-                        </label>
-                        <label>
-                            Hauteur plancher bas (m)
-                            <input type="number" id="inp-hauteur" value="9" min="0" step="0.5">
-                        </label>
-                        <label>
-                            Distance max escalier (m)
-                            <input type="number" id="inp-distEscalier" value="10" min="0" step="0.5">
-                        </label>
-                        <label>
-                            Voie échelle accessible ?
-                            <select id="inp-voieEchelle">
-                                <option value="oui">Oui</option>
-                                <option value="non">Non</option>
-                            </select>
-                        </label>
-                    </div>
-                </section>
-
-                <!-- Affichage des résultats du moteur de règles -->
-                <section class="card results-card">
-                    <h2>Analyse Réglementaire Détaillée</h2>
-                    <div id="analysis-results"></div>
-                </section>
-            </div>
-        </main>
-    </div>
-    <script src="script.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Assistant Qualiconsult d’étude réglementaire pour les bâtiments d’habitation." />
+    <link rel="icon" type="image/png" href="%BASE_URL%qualiconsult-mark.png" />
+    <title>Qualiconsult Habitations — Sécurité incendie</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
