@@ -256,16 +256,16 @@ export default function Home() {
         <section className="site-hero welcome-hero">
           <figure className="site-hero-visual">
             <Image src="/hero-securite-incendie-qualiconsult.webp" alt="Visualisation des dispositifs de sécurité incendie d’un bâtiment d’habitation" width={1659} height={948} priority />
-            <figcaption><span>Projet sécurité incendie</span><strong>Expertise Qualiconsult</strong><small>Analyser · Identifier · Sécuriser</small></figcaption>
+            <figcaption><span>Projet sécurité incendie</span><strong>Bâtiment protégé</strong><small>Analyser · Identifier · Sécuriser</small></figcaption>
           </figure>
           <div className="site-hero-copy">
             <div className="hero-brand-card"><Image className="hero-brand-logo" src="/qualiconsult-logo.png" alt="Groupe Qualiconsult" width={456} height={256} priority /></div>
-            <span className="eyebrow">Groupe Qualiconsult · Expertise réglementaire</span>
+            <span className="eyebrow">Arrêté du 31 janvier 1986 modifié</span>
             <h1>Projet<br /><em>Sécurité incendie</em></h1>
-            <p><strong>Une solution d’aide à l’analyse Qualiconsult</strong> pour vérifier les exigences réglementaires, repérer immédiatement les non-conformités et sécuriser chaque projet d’habitation.</p>
+            <p><strong>Un outil d’aide à l’analyse réglementaire</strong> pour vérifier les exigences applicables, repérer immédiatement les non-conformités et sécuriser chaque projet d’habitation.</p>
             <div className="hero-actions">
               <button className="hero-cta" type="button" onClick={startAnalysis}>Démarrer l’analyse<Icon name="arrow" /></button>
-              <span>Analyse Qualiconsult enregistrée automatiquement</span>
+              <span>Étude enregistrée automatiquement</span>
             </div>
           </div>
         </section>
