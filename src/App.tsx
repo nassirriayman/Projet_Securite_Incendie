@@ -246,6 +246,7 @@ export default function Home() {
 
   const startAnalysis = () => {
     setActive("classification");
+    setSidebarOpen(true);
     setAnalysisStarted(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -256,7 +257,6 @@ export default function Home() {
         <section className="site-hero welcome-hero">
           <figure className="site-hero-visual">
             <Image src="/hero-securite-incendie-qualiconsult.webp" alt="Visualisation des dispositifs de sécurité incendie d’un bâtiment d’habitation" width={1659} height={948} priority />
-            <figcaption><span>Projet sécurité incendie</span><strong>Bâtiment protégé</strong><small>Analyser · Identifier · Sécuriser</small></figcaption>
           </figure>
           <div className="site-hero-copy">
             <div className="hero-brand-card"><Image className="hero-brand-logo" src="/qualiconsult-logo.png" alt="Groupe Qualiconsult" width={456} height={256} priority /></div>
