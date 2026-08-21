@@ -255,17 +255,17 @@ export default function Home() {
       <main className="welcome-screen screen-app">
         <section className="site-hero welcome-hero">
           <figure className="site-hero-visual">
-            <Image src="/qualiconsult-construction-hero.jpg" alt="Experts du Groupe Qualiconsult sur un chantier" width={2033} height={560} priority />
-            <figcaption><span>Expertise construction</span><strong>Groupe Qualiconsult</strong><small>Prévention · Contrôle · Accompagnement</small></figcaption>
+            <Image src="/hero-securite-incendie-qualiconsult.webp" alt="Visualisation des dispositifs de sécurité incendie d’un bâtiment d’habitation" width={1659} height={948} priority />
+            <figcaption><span>Projet sécurité incendie</span><strong>Expertise Qualiconsult</strong><small>Analyser · Identifier · Sécuriser</small></figcaption>
           </figure>
           <div className="site-hero-copy">
             <div className="hero-brand-card"><Image className="hero-brand-logo" src="/qualiconsult-logo.png" alt="Groupe Qualiconsult" width={456} height={256} priority /></div>
-            <span className="eyebrow">Arrêté du 31 janvier 1986 modifié</span>
-            <h1>Sécurité incendie<br /><em>des bâtiments d’habitation</em></h1>
-            <p>Un outil d’aide à l’analyse réglementaire pour identifier les exigences applicables, documenter les points conformes et traiter les écarts.</p>
+            <span className="eyebrow">Groupe Qualiconsult · Expertise réglementaire</span>
+            <h1>Projet<br /><em>Sécurité incendie</em></h1>
+            <p><strong>Une solution d’aide à l’analyse Qualiconsult</strong> pour vérifier les exigences réglementaires, repérer immédiatement les non-conformités et sécuriser chaque projet d’habitation.</p>
             <div className="hero-actions">
               <button className="hero-cta" type="button" onClick={startAnalysis}>Démarrer l’analyse<Icon name="arrow" /></button>
-              <span>Étude enregistrée automatiquement</span>
+              <span>Analyse Qualiconsult enregistrée automatiquement</span>
             </div>
           </div>
         </section>
