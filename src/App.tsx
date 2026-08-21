@@ -156,7 +156,7 @@ export default function Home() {
   const [answers, setAnswers] = useState<ModuleAnswers>(initialModuleAnswers);
   const [active, setActive] = useState("classification");
   const [saved, setSaved] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [analysisStarted, setAnalysisStarted] = useState(false);
   const result = useMemo(() => classify(project), [project]);
 
@@ -246,7 +246,7 @@ export default function Home() {
 
   const startAnalysis = () => {
     setActive("classification");
-    setSidebarOpen(true);
+    setSidebarOpen(false);
     setAnalysisStarted(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
