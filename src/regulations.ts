@@ -40,7 +40,7 @@ export const initialModuleAnswers: ModuleAnswers = {
   e_under8: "Non", e_pf: "Non", e_position: "Latérale (dièdre > 135°)", e_distance: 2,
   n_wall: "CF 15", n_imposts: "Oui", n_impostRating: "PF 15", n_doors: "Oui", n_doorRating: "PF 30", n_closer: "Oui", n_exit: "Oui", n_room: "Non",
   t_floor: "M4", t_ceiling: "M2", t_walls: "M2", t_incombustible: "Oui", t_basementLink: "Oui", t_door: "Oui", t_doorRating: "CF 60", t_doorConditions: "Oui",
-  p_type: "Intérieur", p_smokeDevice: "Oui", p_system: "Électrique", p_command: "Oui", p_detector: "Oui", p_circulation: "Oui", p_noShaft: "Oui", p_lighting: "Oui", p_conduits: "C2", p_airOpen: "Oui", p_walls: "Oui", p_door: "Oui", p_topDevice: "Ouverture horizontale 1 m²", p_closedExit: "Oui", p_facade: "Façade latérale", p_distance: 2, p_exit: "Oui",
+  p_type: "Intérieur", p_smokeDevice: "Oui", p_system: "Électrique", p_command: "Oui", p_detector: "Oui", p_circulation: "Oui", p_noShaft: "Oui", p_lighting: "Oui", p_conduits: "C2", p_airOpen: "Oui", p_walls: "Oui", p_door: "Oui", p_topDevice: "Ouverture horizontale 1 m²", p_closedExit: "Oui",
 };
 
 const yn = (id: string, index: string, title: string, hint?: string): QuestionDef => ({ id, index, title, hint, type: "yesno" });
@@ -403,29 +403,18 @@ function protectedStairs(ctx: ModuleContext, a: ModuleAnswers): ModuleConfig {
   const questions: QuestionDef[] = [];
   const r: ResultDef[] = [];
   if (!ctx.collective) {
-    r.push(result("Applicabilité", "Articles 25 à 29 bis non applicables aux habitations individuelles.", "success"));
-    return { title: "Désenfumage & escaliers protégés", kicker: "Articles 25 à 29 bis", intro: "Vérifiez le désenfumage des cages et les dispositions des escaliers protégés ou extérieurs.", questions, results: r, reminder: ["Le présent module s’applique aux habitations collectives selon leur famille et le type d’escalier."] };
+    r.push(result("Applicabilité", "Articles 25 à 29 non applicables aux habitations individuelles.", "success"));
+    return { title: "Désenfumage & escaliers protégés", kicker: "Articles 25 à 29", intro: "Vérifiez le désenfumage des cages et les dispositions des escaliers protégés.", questions, results: r, reminder: ["Le présent module s’applique aux habitations collectives selon leur famille et le type d’escalier."] };
   }
 
-  const stairTypes = ["Intérieur", "Protégé - à l’air libre", "Protégé - à l’abri des fumées", "Extérieur (Art. 29 bis)"];
+  const stairTypes = ["Intérieur", "Protégé - à l’air libre", "Protégé - à l’abri des fumées"];
   questions.push(select("p_type", "01", "Type d’escalier", stairTypes));
-  const stairType = String(a.p_type);
-  const exterior = stairType === "Extérieur (Art. 29 bis)";
+  const savedStairType = String(a.p_type);
+  const stairType = stairTypes.includes(savedStairType) ? savedStairType : stairTypes[0];
   const article25 = ctx.family === "2" || ctx.family === "3A";
   const protectedFamily = ctx.family === "3B" || ctx.family === "4";
 
-  if (exterior) {
-    questions.push(
-      select("p_facade", "14", "Position de la façade comportant des baies par rapport à l’escalier", ["Façade latérale", "Façade en retour", "Façade en vis-à-vis"]),
-      num("p_distance", "15", "Distance entre l’escalier extérieur et la baie la plus proche", "mètres"),
-      yn("p_exit", "16", "L’escalier débouche-t-il directement à l’extérieur au RDC, ou dans un hall ou une circulation largement ventilée sur l’extérieur ?"),
-    );
-    const minimum = stairType && String(a.p_facade) === "Façade latérale" ? 2 : String(a.p_facade) === "Façade en retour" ? 4 : 8;
-    r.push(
-      result("Art. 29 bis · Distance aux baies", value(a, "p_distance") >= minimum ? `Conforme : ${value(a, "p_distance")} m, minimum ${minimum} m pour une ${String(a.p_facade).toLowerCase()}.` : `Non conforme : ${value(a, "p_distance")} m, minimum ${minimum} m pour une ${String(a.p_facade).toLowerCase()}.`, value(a, "p_distance") >= minimum ? "success" : "danger"),
-      result("Art. 29 bis · Débouché au rez-de-chaussée", yes(a, "p_exit") ? "Conforme : débouché extérieur ou dans un volume largement ventilé." : "Non conforme : l’escalier doit déboucher directement à l’extérieur ou dans un hall ou une circulation largement ventilée.", yes(a, "p_exit") ? "success" : "danger"),
-    );
-  } else if (article25) {
+  if (article25) {
     questions.push(
       yn("p_smokeDevice", "02", "La cage comporte-t-elle en partie haute un dispositif fermé en temps normal permettant une ouverture d’au moins 1 m² ?"),
       select("p_system", "03", "Système de commande du dispositif", ["Électrique", "Pneumatique", "Hydraulique", "Électromagnétique", "Électro-pneumatique", "Tringlerie mécanique", "Autre / non conforme"]),
@@ -444,7 +433,7 @@ function protectedStairs(ctx: ModuleContext, a: ModuleAnswers): ModuleConfig {
     const airOpen = stairType === "Protégé - à l’air libre";
     const smokeProtected = stairType === "Protégé - à l’abri des fumées";
     if (!airOpen && !smokeProtected) {
-      r.push(result("Art. 26 · Protection de l’escalier", "Non conforme : l’escalier doit être protégé à l’air libre, protégé à l’abri des fumées ou extérieur.", "danger"));
+      r.push(result("Art. 26 · Protection de l’escalier", "Non conforme : l’escalier doit être protégé à l’air libre ou protégé à l’abri des fumées.", "danger"));
     } else {
       questions.push(
         yn("p_circulation", "06", "L'escalier est-il desservi à chaque niveau par une circulation horizontale protégée, avec laquelle  il ne communique que par une seule issue ?"),
@@ -485,12 +474,12 @@ function protectedStairs(ctx: ModuleContext, a: ModuleAnswers): ModuleConfig {
       }
     }
   } else {
-    r.push(result("Applicabilité", "Classement hors périmètre des articles 25 à 29 bis du classeur source.", "neutral"));
+    r.push(result("Applicabilité", "Classement hors périmètre des articles 25 à 29 du classeur source.", "neutral"));
   }
 
   return {
-    title: "Désenfumage & escaliers protégés", kicker: "Articles 25 à 29 bis", intro: "Vérifiez le désenfumage des cages et les dispositions des escaliers protégés ou extérieurs.", questions, results: r,
-    reminder: ["Art. 25 : dispositif haut d’ouverture minimale 1 m², commandé au rez-de-chaussée.", "Art. 27 : les conduits non encastrés présents dans la cage sont classés C2 au minimum.", "Art. 29 bis : distances minimales aux baies de 2 m en façade latérale, 4 m en retour et 8 m en vis-à-vis."],
+    title: "Désenfumage & escaliers protégés", kicker: "Articles 25 à 29", intro: "Vérifiez le désenfumage des cages et les dispositions des escaliers protégés.", questions, results: r,
+    reminder: ["Art. 25 : dispositif haut d’ouverture minimale 1 m², commandé au rez-de-chaussée.", "Art. 27 : les conduits non encastrés présents dans la cage sont classés C2 au minimum."],
   };
 }
 
