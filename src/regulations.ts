@@ -437,7 +437,7 @@ function protectedStairs(ctx: ModuleContext, a: ModuleAnswers): ModuleConfig {
     } else {
       questions.push(
         yn("p_circulation", "06", "L'escalier est-il desservi à chaque niveau par une circulation horizontale protégée, avec laquelle  il ne communique que par une seule issue ?"),
-        yn("p_noShaft", "07", "La cage est-elle exempte de gaines, trémies, vide-ordures et accès à des locaux non autorisés ?"),
+        yn("p_noShaft", "07", "La cage est-elle exemptée de gaines, trémies, vide-ordures et accès à des locaux non autorisés ?"),
         yn("p_lighting", "08", "L’éclairage électrique de l’escalier et de ses accès respecte-t-il les dispositions de sécurité prévues ?"),
         select("p_conduits", "08 bis", "Classement des conduits non encastrés présents dans la cage", ["C1", "C2", "C3", "C4", "Pas de conduit non encastré"]),
       );
