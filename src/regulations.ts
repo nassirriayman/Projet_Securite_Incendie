@@ -452,7 +452,7 @@ function protectedStairs(ctx: ModuleContext, a: ModuleAnswers): ModuleConfig {
         questions.push(yn("p_airOpen", "09", "La paroi donnant sur l’extérieur est-elle ouverte sur au moins la moitié de sa surface sur toute sa longueur ?", "Le respect de l’article 18 est contrôlé automatiquement à partir des réponses de l’onglet 08."));
         questions.push(yn("p_airOpenDoors", "09 bis", "L’escalier comporte-t-il des portes desservant des circulations protégées ?"));
         const hasProtectedDoors = yes(a, "p_airOpenDoors");
-        if (hasProtectedDoors) questions.push(yn("p_airOpenDoorsCompliant", "09 ter", "Ces portes répondent-elles aux dispositions prévues pour celles des escaliers à l’abri des fumées ?", "Blocs-portes PF 30 min, largeur minimale de 0,80 m, ferme-porte, ouverture dans le sens de la sortie et passage utile préservé."));
+        if (hasProtectedDoors) questions.push(yn("p_airOpenDoorsCompliant", "09 ter", "Les blocs-portes sont-ils PF 30 min, d'une largeur minimale de 0,80 m, munis d'un ferme-porte (ouverture dans le sens de la sortie et passage utile préservé).",));
         const article18 = article18FacadeCompliance(a);
         const openingCompliant = yes(a, "p_airOpen");
         const doorsCompliant = !hasProtectedDoors || yes(a, "p_airOpenDoorsCompliant");
