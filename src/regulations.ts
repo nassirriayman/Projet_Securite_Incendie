@@ -438,7 +438,7 @@ function protectedStairs(ctx: ModuleContext, a: ModuleAnswers): ModuleConfig {
       questions.push(
         yn("p_circulation", "06", "L'escalier est-il desservi à chaque niveau par une circulation horizontale protégée, avec laquelle  il ne communique que par une seule issue ?"),
         yn("p_noShaft", "07", "La cage est-elle exemptée de gaines, trémies, vide-ordures et accès à des locaux non autorisés ?"),
-        yn("p_lighting", "08", "Est ce que l'escalier comporte un éclairage électrique constitué soit par une dérivation issue directement du tableau principal (sans traverser les sous-sols) et sélectivement protégée, soit par des blocs autonomes de type non permanent conformes aux normes françaises les concernant. ?"),
+        yn("p_lighting", "08", "Est ce que l'escalier comporte un éclairage électrique constitué soit par une dérivation issue directement du tableau principal (sans traverser les sous-sols) et sélectivement protégée, soit par des blocs autonomes de type non permanent conformes aux normes françaises les concernant?")
         select("p_conduits", "08 bis", "Classement des conduits non encastrés présents dans la cage", ["C1", "C2", "C3", "C4", "Pas de conduit non encastré"]),
       );
       r.push(
