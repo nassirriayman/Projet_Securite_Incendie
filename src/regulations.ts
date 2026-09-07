@@ -65,6 +65,18 @@ function reactionRank(raw: ModuleValue): number {
   return match ? Number(match[1]) : 99;
 }
 
+function article18FacadeCompliance(a: ModuleAnswers) {
+  const position = String(a.e_position);
+  const minimum = position.startsWith("Latérale") ? 2 : position.startsWith("En retour") ? 4 : 8;
+  const distance = value(a, "e_distance");
+  return {
+    compliant: yes(a, "e_pf") || distance >= minimum,
+    distance,
+    minimum,
+    position,
+  };
+}
+
 function structure(ctx: ModuleContext, a: ModuleAnswers): ModuleConfig {
   const stability = ({ "1": 15, "2": 30, "3A": 60, "3B": 60, "4": 90 } as Record<string, number>)[ctx.family] ?? 0;
   const floorFire = stability;
@@ -277,10 +289,9 @@ function stairsFacade(ctx: ModuleContext, a: ModuleAnswers): ModuleConfig {
         r.push(result("Parois", "Parois intégralement PF 30 minutes : conforme.", "success"));
       } else {
         questions.push(select("e_position", ctx.family === "2" ? "03" : "02", "Position de la façade voisine comportant des fenêtres", ["Latérale (dièdre > 135°)", "En retour (dièdre 90° à 135°)", "Vis-à-vis (dièdre < 90°)"]), num("e_distance", ctx.family === "2" ? "04" : "03", "Distance entre partie non PF et fenêtre voisine", "mètres"));
-        const pos = String(a.e_position);
-        const minimum = pos.startsWith("Latérale") ? 2 : pos.startsWith("En retour") ? 4 : 8;
+        const article18 = article18FacadeCompliance(a);
         r.push(result("Parois", "Certaines parties ne sont pas PF 30 minutes : distance à contrôler.", "warning"));
-        r.push(result("Distance", value(a, "e_distance") >= minimum ? `Conforme : ${value(a, "e_distance")} m, minimum ${minimum} m.` : `Non conforme : ${value(a, "e_distance")} m, minimum ${minimum} m.`, value(a, "e_distance") >= minimum ? "success" : "danger"));
+        r.push(result("Distance", article18.compliant ? `Conforme : ${article18.distance} m, minimum ${article18.minimum} m.` : `Non conforme : ${article18.distance} m, minimum ${article18.minimum} m.`, article18.compliant ? "success" : "danger"));
       }
     }
   }
@@ -438,7 +449,7 @@ function protectedStairs(ctx: ModuleContext, a: ModuleAnswers): ModuleConfig {
       questions.push(
         yn("p_circulation", "06", "L'escalier est-il desservi à chaque niveau par une circulation horizontale protégée, avec laquelle  il ne communique que par une seule issue ?"),
         yn("p_noShaft", "07", "La cage est-elle exemptée de gaines, trémies, vide-ordures et accès à des locaux non autorisés ?"),
-        yn("p_lighting", "08", "Est ce que l'escalier comporte un éclairage électrique constitué soit par une dérivation issue directement du tableau principal (sans traverser les sous-sols) et sélectivement protégée, soit par des blocs autonomes de type non permanent conformes aux normes françaises les concernant?")
+        yn("p_lighting", "08", "Est ce que l'escalier comporte un éclairage électrique constitué soit par une dérivation issue directement du tableau principal (sans traverser les sous-sols) et sélectivement protégée, soit par des blocs autonomes de type non permanent conformes aux normes françaises les concernant?"),
         select("p_conduits", "08 bis", "Classement des conduits non encastrés présents dans la cage", ["C1", "C2", "C3", "C4", "Pas de conduit non encastré"]),
       );
       r.push(
@@ -449,8 +460,14 @@ function protectedStairs(ctx: ModuleContext, a: ModuleAnswers): ModuleConfig {
         result("Art. 27 · Conduits non encastrés", ["C1", "C2", "Pas de conduit non encastré"].includes(String(a.p_conduits)) ? `${a.p_conduits} : conforme.` : `${a.p_conduits} : non conforme, classement C2 ou plus performant exigé.`, ["C1", "C2", "Pas de conduit non encastré"].includes(String(a.p_conduits)) ? "success" : "danger"),
       );
       if (airOpen) {
-        questions.push(yn("p_airOpen", "09", "La paroi donnant sur l’extérieur est-elle ouverte sur au moins la moitié de sa surface sur toute sa longueur, avec respect de l’article 18 ?"));
-        r.push(result("Art. 28 · Escalier à l’air libre", yes(a, "p_airOpen") ? "Conforme : ouverture permanente suffisante et dispositions de façade respectées." : "Non conforme : la paroi extérieure doit être ouverte sur au moins la moitié de sa surface sur toute sa longueur.", yes(a, "p_airOpen") ? "success" : "danger"));
+        questions.push(yn("p_airOpen", "09", "La paroi donnant sur l’extérieur est-elle ouverte sur au moins la moitié de sa surface sur toute sa longueur ?", "Le respect de l’article 18 est contrôlé automatiquement à partir des réponses de l’onglet 08."));
+        const article18 = article18FacadeCompliance(a);
+        const openingCompliant = yes(a, "p_airOpen");
+        const article28Compliant = openingCompliant && article18.compliant;
+        const issues: string[] = [];
+        if (!openingCompliant) issues.push("la paroi extérieure doit être ouverte sur au moins la moitié de sa surface sur toute sa longueur");
+        if (!article18.compliant) issues.push(`l’article 18 n’est pas respecté : ${article18.distance} m déclarés, minimum ${article18.minimum} m pour une ${article18.position.toLowerCase()}`);
+        r.push(result("Art. 28 · Escalier à l’air libre", article28Compliant ? "Conforme : ouverture permanente suffisante et exigences de l’article 18 respectées." : `Non conforme : ${issues.join(" De plus, ")}.`, article28Compliant ? "success" : "danger"));
       } else {
         questions.push(
           yn("p_walls", "10", "Les parois de la cage sont-elles CF 60 min et les impostes ou oculus PF 60 min ?"),
