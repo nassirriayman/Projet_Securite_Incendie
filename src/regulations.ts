@@ -305,9 +305,9 @@ function stairsInside(ctx: ModuleContext, a: ModuleAnswers): ModuleConfig {
   } else if (ctx.family === "3A" || ctx.family === "3B") {
     questions.push(
       select("n_wall", "01", "Degré coupe-feu des parois non situées en façade", ["CF 15", "CF 30", "CF 60", "CF 120"]),
-      yn("n_imposts", "02", "Les parois comportent-elles des impostes ou oculi ?"),
+      yn("n_imposts", "02", "Les parois comportent-elles des impostes ou oculus ?"),
     );
-    if (yes(a, "n_imposts")) questions.push(select("n_impostRating", "03", "Degré pare-flammes des impostes ou oculi", ["PF 15", "PF 30", "PF 60", "PF 120"]));
+    if (yes(a, "n_imposts")) questions.push(select("n_impostRating", "03", "Degré pare-flammes des impostes ou oculus", ["PF 15", "PF 30", "PF 60", "PF 120"]));
     questions.push(yn("n_doors", "04", "Existe-t-il des portes séparant l’escalier des circulations horizontales ?"));
     if (yes(a, "n_doors")) questions.push(select("n_doorRating", "05", "Degré pare-flammes des blocs-portes", ["PF 15", "PF 30", "PF 60", "PF 120"]), yn("n_closer", "06", "Chaque porte est-elle munie d’un ferme-porte ?"), yn("n_exit", "07", "Chaque porte s’ouvre-t-elle dans le sens de la sortie ?"));
     questions.push(yn("n_room", "08", "Un local s’ouvre-t-il directement sur l’escalier ?"));
@@ -315,7 +315,7 @@ function stairsInside(ctx: ModuleContext, a: ModuleAnswers): ModuleConfig {
     r.push(result("Applicabilité", "Article 20 applicable à l’habitation de 3e famille.", "warning"));
     r.push(result("Parois", wall >= 60 ? `Conforme : CF ${wall} min, minimum 60 min.` : `Non conforme : CF ${wall} min, minimum 60 min.`, wall >= 60 ? "success" : "danger"));
     const impost = fireDuration(a.n_impostRating);
-    r.push(result("Impostes et oculi", no(a, "n_imposts") ? "Aucune imposte ni oculus : conforme." : impost >= 60 ? `Conforme : PF ${impost} min.` : `Non conforme : PF ${impost} min, minimum 60 min.`, no(a, "n_imposts") || impost >= 60 ? "success" : "danger"));
+    r.push(result("Impostes et oculus", no(a, "n_imposts") ? "Aucune imposte ni oculus : conforme." : impost >= 60 ? `Conforme : PF ${impost} min.` : `Non conforme : PF ${impost} min, minimum 60 min.`, no(a, "n_imposts") || impost >= 60 ? "success" : "danger"));
     const doorAnomalies = [fireDuration(a.n_doorRating) < 30 ? "PF inférieur à 30 min" : "", no(a, "n_closer") ? "ferme-porte absent" : "", no(a, "n_exit") ? "mauvais sens d’ouverture" : ""].filter(Boolean);
     r.push(result("Blocs-portes", no(a, "n_doors") ? "Non conforme : blocs-portes séparatifs absents." : doorAnomalies.length ? `Non conforme : ${doorAnomalies.join(" ; ")}.` : "Conforme : PF 30 min, ferme-porte et sens de sortie.", yes(a, "n_doors") && !doorAnomalies.length ? "success" : "danger"));
     r.push(result("Locaux ouvrant sur l’escalier", yes(a, "n_room") ? "Non conforme : aucun local ne doit s’ouvrir sur l’escalier." : "Conforme : aucun local ne s’ouvre sur l’escalier.", yes(a, "n_room") ? "danger" : "success"));
@@ -323,7 +323,7 @@ function stairsInside(ctx: ModuleContext, a: ModuleAnswers): ModuleConfig {
     r.push(result("Applicabilité", "Le classeur source ne traite les articles 19–20 que pour les 2e et 3e familles.", "neutral"));
   }
   return {
-    title: "Escaliers non situés en façade", kicker: "Articles 19 et 20", intro: "Contrôlez les parois, impostes, oculi, blocs-portes et ouvertures sur les cages d’escalier.", questions, results: r,
+    title: "Escaliers non situés en façade", kicker: "Articles 19 et 20", intro: "Contrôlez les parois, impostes, oculus, blocs-portes et ouvertures sur les cages d’escalier.", questions, results: r,
     reminder: ["Art. 19 : parois CF 30 min ; portes séparatives exigées au-dessus de 8 m.", "Art. 20 : parois et impostes PF/CF 60 min ; blocs-portes PF 30 min avec ferme-porte."],
   };
 }
@@ -453,14 +453,14 @@ function protectedStairs(ctx: ModuleContext, a: ModuleAnswers): ModuleConfig {
         r.push(result("Art. 28 · Escalier à l’air libre", yes(a, "p_airOpen") ? "Conforme : ouverture permanente suffisante et dispositions de façade respectées." : "Non conforme : la paroi extérieure doit être ouverte sur au moins la moitié de sa surface sur toute sa longueur.", yes(a, "p_airOpen") ? "success" : "danger"));
       } else {
         questions.push(
-          yn("p_walls", "10", "Les parois de la cage sont-elles CF 60 min et les impostes ou oculi PF 60 min ?"),
+          yn("p_walls", "10", "Les parois de la cage sont-elles CF 60 min et les impostes ou oculus PF 60 min ?"),
           yn("p_door", "11", "Les blocs-portes sont-ils PF 30 min, d’au moins 0,80 m, munis d’un ferme-porte et ouvrant dans le sens de la sortie sans réduire le passage utile ?"),
           select("p_topDevice", "12", "Dispositif prévu en partie haute de la cage", ["Ouverture horizontale 1 m²", "Mise en surpression", "Aucun dispositif"]),
           yn("p_closedExit", "13", "La cage est-elle fermée en temps normal, ventilée en partie haute et basse, et son accès au RDC débouche-t-il directement dehors ou dans un hall ventilé ?"),
         );
         const topOkay = String(a.p_topDevice) !== "Aucun dispositif";
         r.push(
-          result("Art. 29 · Parois", yes(a, "p_walls") ? "Conforme : parois CF 60 min et impostes ou oculi PF 60 min." : "Non conforme : parois CF 60 min et impostes ou oculi PF 60 min exigés.", yes(a, "p_walls") ? "success" : "danger"),
+          result("Art. 29 · Parois", yes(a, "p_walls") ? "Conforme : parois CF 60 min et impostes ou oculus PF 60 min." : "Non conforme : parois CF 60 min et impostes ou oculus PF 60 min exigés.", yes(a, "p_walls") ? "success" : "danger"),
           result("Art. 29 · Blocs-portes", yes(a, "p_door") ? "Conforme : PF 30 min, largeur, ferme-porte, sens d’ouverture et passage utile respectés." : "Non conforme : le bloc-porte doit être PF 30 min, mesurer au moins 0,80 m et respecter les conditions d’évacuation.", yes(a, "p_door") ? "success" : "danger"),
           result("Art. 29 · Dispositif haut", topOkay ? `${a.p_topDevice} : solution admise.` : "Non conforme : une ouverture horizontale d’au moins 1 m² ou une mise en surpression est exigée.", topOkay ? "success" : "danger"),
           result("Art. 29 · Cage et débouché", yes(a, "p_closedExit") ? "Conforme : fermeture, ventilation et débouché déclarés conformes." : "Non conforme : la cage doit être fermée en temps normal, ventilée et déboucher dehors ou dans un hall ventilé.", yes(a, "p_closedExit") ? "success" : "danger"),
