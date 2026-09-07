@@ -436,7 +436,7 @@ function protectedStairs(ctx: ModuleContext, a: ModuleAnswers): ModuleConfig {
       r.push(result("Art. 26 · Protection de l’escalier", "Non conforme : l’escalier doit être protégé à l’air libre, protégé à l’abri des fumées ou extérieur.", "danger"));
     } else {
       questions.push(
-        yn("p_circulation", "06", "À chaque niveau, la circulation protégée possède-t-elle au moins une issue donnant accès à l’escalier ?"),
+        yn("p_circulation", "06", "L'escalier est-il desservi à chaque niveau par une circulation horizontale protégée, avec laquelle  il ne communique que par une seule issue ?"),
         yn("p_noShaft", "07", "La cage est-elle exempte de gaines, trémies, vide-ordures et accès à des locaux non autorisés ?"),
         yn("p_lighting", "08", "L’éclairage électrique de l’escalier et de ses accès respecte-t-il les dispositions de sécurité prévues ?"),
         select("p_conduits", "08 bis", "Classement des conduits non encastrés présents dans la cage", ["C1", "C2", "C3", "C4", "Pas de conduit non encastré"]),
