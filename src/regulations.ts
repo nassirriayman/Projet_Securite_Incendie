@@ -40,7 +40,7 @@ export const initialModuleAnswers: ModuleAnswers = {
   e_under8: "Non", e_pf: "Non", e_position: "Latérale (dièdre > 135°)", e_distance: 2,
   n_wall: "CF 15", n_imposts: "Oui", n_impostRating: "PF 15", n_doors: "Oui", n_doorRating: "PF 30", n_closer: "Oui", n_exit: "Oui", n_room: "Non",
   t_floor: "M4", t_ceiling: "M2", t_walls: "M2", t_incombustible: "Oui", t_basementLink: "Oui", t_door: "Oui", t_doorRating: "CF 60", t_doorConditions: "Oui",
-  p_type: "Intérieur", p_smokeDevice: "Oui", p_system: "Électrique", p_command: "Oui", p_detector: "Oui", p_circulation: "Oui", p_noShaft: "Oui", p_lighting: "Oui", p_conduits: "C2", p_airOpen: "Oui", p_walls: "Oui", p_door: "Oui", p_topDevice: "Ouverture horizontale 1 m²", p_closedExit: "Oui",
+  p_type: "Intérieur", p_smokeDevice: "Oui", p_system: "Électrique", p_command: "Oui", p_detector: "Oui", p_circulation: "Oui", p_noShaft: "Oui", p_lighting: "Oui", p_conduits: "C2", p_airOpen: "Oui", p_airOpenDoors: "Non", p_airOpenDoorsCompliant: "Oui", p_walls: "Oui", p_door: "Oui", p_topDevice: "Ouverture horizontale 1 m²", p_closedExit: "Oui",
 };
 
 const yn = (id: string, index: string, title: string, hint?: string): QuestionDef => ({ id, index, title, hint, type: "yesno" });
@@ -450,13 +450,19 @@ function protectedStairs(ctx: ModuleContext, a: ModuleAnswers): ModuleConfig {
       );
       if (airOpen) {
         questions.push(yn("p_airOpen", "09", "La paroi donnant sur l’extérieur est-elle ouverte sur au moins la moitié de sa surface sur toute sa longueur ?", "Le respect de l’article 18 est contrôlé automatiquement à partir des réponses de l’onglet 08."));
+        questions.push(yn("p_airOpenDoors", "09 bis", "L’escalier comporte-t-il des portes desservant des circulations protégées ?"));
+        const hasProtectedDoors = yes(a, "p_airOpenDoors");
+        if (hasProtectedDoors) questions.push(yn("p_airOpenDoorsCompliant", "09 ter", "Ces portes répondent-elles aux dispositions prévues pour celles des escaliers à l’abri des fumées ?", "Blocs-portes PF 30 min, largeur minimale de 0,80 m, ferme-porte, ouverture dans le sens de la sortie et passage utile préservé."));
         const article18 = article18FacadeCompliance(a);
         const openingCompliant = yes(a, "p_airOpen");
-        const article28Compliant = openingCompliant && article18.compliant;
+        const doorsCompliant = !hasProtectedDoors || yes(a, "p_airOpenDoorsCompliant");
+        const article28Compliant = openingCompliant && article18.compliant && doorsCompliant;
         const issues: string[] = [];
         if (!openingCompliant) issues.push("la paroi extérieure doit être ouverte sur au moins la moitié de sa surface sur toute sa longueur");
         if (!article18.compliant) issues.push(`l’article 18 n’est pas respecté : ${article18.distance} m déclarés, minimum ${article18.minimum} m pour une ${article18.position.toLowerCase()}`);
-        r.push(result("Art. 28 · Escalier à l’air libre", article28Compliant ? "Conforme : ouverture permanente suffisante et exigences de l’article 18 respectées." : `Non conforme : ${issues.join(" De plus, ")}.`, article28Compliant ? "success" : "danger"));
+        if (!doorsCompliant) issues.push("les portes desservant les circulations protégées ne respectent pas les dispositions prévues pour les escaliers à l’abri des fumées");
+        const successText = hasProtectedDoors ? "Conforme : ouverture permanente suffisante, exigences de l’article 18 respectées et portes des circulations protégées conformes." : "Conforme : ouverture permanente suffisante et exigences de l’article 18 respectées ; aucune porte desservant une circulation protégée n’est déclarée.";
+        r.push(result("Art. 28 · Escalier à l’air libre", article28Compliant ? successText : `Non conforme : ${issues.join(". De plus, ")}.`, article28Compliant ? "success" : "danger"));
       } else {
         questions.push(
           yn("p_walls", "10", "Les parois de la cage sont-elles CF 60 min et les impostes ou oculus PF 60 min ?"),
@@ -479,7 +485,7 @@ function protectedStairs(ctx: ModuleContext, a: ModuleAnswers): ModuleConfig {
 
   return {
     title: "Désenfumage & escaliers protégés", kicker: "Articles 25 à 29", intro: "Vérifiez le désenfumage des cages et les dispositions des escaliers protégés.", questions, results: r,
-    reminder: ["Art. 25 : dispositif haut d’ouverture minimale 1 m², commandé au rez-de-chaussée.", "Art. 27 : les conduits non encastrés présents dans la cage sont classés C2 au minimum."],
+    reminder: ["Art. 25 : dispositif haut d’ouverture minimale 1 m², commandé au rez-de-chaussée.", "Art. 27 : les conduits non encastrés présents dans la cage sont classés C2 au minimum.", "Art. 28 : l’escalier à l’air libre comporte une paroi extérieure ouverte sur au moins la moitié de sa surface sur toute sa longueur et respecte l’article 18. Ses éventuelles portes desservant des circulations protégées répondent aux dispositions prévues pour celles des escaliers à l’abri des fumées."],
   };
 }
 
