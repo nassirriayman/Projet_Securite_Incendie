@@ -61,7 +61,7 @@ const chapters: Chapter[] = [
   { id: "stairs-facade", number: "08", title: "Escaliers façade", subtitle: "Parois des cages", articles: "Art. 18" },
   { id: "stairs-inside", number: "09", title: "Escaliers intérieurs", subtitle: "Parois & blocs-portes", articles: "Art. 19–20" },
   { id: "stairs-finishes", number: "10", title: "Réaction au feu", subtitle: "Escaliers & revêtements", articles: "Art. 22–24" },
-  { id: "stairs-protected", number: "11", title: "Escaliers protégés", subtitle: "Désenfumage & accès", articles: "Art. 25–29 bis" },
+  { id: "stairs-protected", number: "11", title: "Escaliers protégés", subtitle: "Désenfumage & accès", articles: "Art. 25–29" },
 ];
 
 const initialProject: ProjectState = {
