@@ -443,7 +443,7 @@ function protectedStairs(ctx: ModuleContext, a: ModuleAnswers): ModuleConfig {
       );
       r.push(
         result("Art. 26 · Type d’escalier", `Conforme : escalier ${airOpen ? "protégé à l’air libre" : "protégé à l’abri des fumées"}.`, "success"),
-        result("Art. 27 · Issues", yes(a, "p_circulation") ? "Conforme : chaque niveau dispose d’une issue vers l’escalier protégé." : "Non conforme : L'escalier n'est pas desservi à chaque niveau par une circulation horizontale protégée ou il communique par plusieurs issues", yes(a, "p_circulation") ? "success" : "danger"),
+        result("Art. 27 · Issues", yes(a, "p_circulation") ? "Conforme : chaque niveau dispose d’une issue vers l’escalier protégé." : "Non conforme : L'escalier n'est pas desservi à chaque niveau par une circulation horizontale protégée et/ou il communique par plusieurs issues", yes(a, "p_circulation") ? "success" : "danger"),
         result("Art. 27 · Cage d’escalier", yes(a, "p_noShaft") ? "Conforme : aucun conduit, trémie ou accès interdit relevé." : "Non conforme : la cage comporte un élément ou un accès interdit.", yes(a, "p_noShaft") ? "success" : "danger"),
         result("Art. 27 · Éclairage", yes(a, "p_lighting") ? "Conforme : éclairage de sécurité déclaré conforme." : "Non conforme : l’éclairage de l’escalier et de ses accès doit respecter les dispositions de sécurité.", yes(a, "p_lighting") ? "success" : "danger"),
         result("Art. 27 · Conduits non encastrés", ["C1", "C2", "Pas de conduit non encastré"].includes(String(a.p_conduits)) ? `${a.p_conduits} : conforme.` : `${a.p_conduits} : non conforme, classement C2 ou plus performant exigé.`, ["C1", "C2", "Pas de conduit non encastré"].includes(String(a.p_conduits)) ? "success" : "danger"),
