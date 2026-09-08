@@ -508,7 +508,7 @@ function protectedCorridors(ctx: ModuleContext, a: ModuleAnswers): ModuleConfig 
   };
   const reactionOptions = ["M0", "M1", "M2", "M3", "M4"];
   const airReactionOptions = [...reactionOptions, "Bois"];
-  const ratingOptions = ["15 min", "30 min", "60 min", "90 min", "120 min"];
+  const ratingOptions = ["15 min", "30 min", "60 min", "120 min"];
 
   if (!ctx.collective) {
     r.push(result("Applicabilité", "Articles 30 à 38 non applicables : aucune circulation horizontale commune d’habitation collective n’est déclarée.", "neutral"));
