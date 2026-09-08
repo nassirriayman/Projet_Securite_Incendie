@@ -5,7 +5,7 @@ Application d’aide à l’analyse réglementaire des bâtiments d’habitation
 ## Fonctions principales
 
 - classement automatique du bâtiment ;
-- onze modules d’analyse réglementaire ;
+- douze modules d’analyse réglementaire ;
 - suivi des conformités et non-conformités ;
 - sauvegarde locale des réponses ;
 - rapport imprimable en PDF ;
