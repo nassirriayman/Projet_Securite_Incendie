@@ -62,6 +62,7 @@ const chapters: Chapter[] = [
   { id: "stairs-inside", number: "09", title: "Escaliers intérieurs", subtitle: "Parois & blocs-portes", articles: "Art. 19–20" },
   { id: "stairs-finishes", number: "10", title: "Réaction au feu", subtitle: "Escaliers & revêtements", articles: "Art. 22–24" },
   { id: "stairs-protected", number: "11", title: "Escaliers protégés", subtitle: "Désenfumage & accès", articles: "Art. 25–29" },
+  { id: "corridors-protected", number: "12", title: "Circulations protégées", subtitle: "Air libre & désenfumage", articles: "Art. 30–38" },
 ];
 
 const initialProject: ProjectState = {
@@ -99,9 +100,6 @@ function classify(project: ProjectState): { family: string; familyKey: "1" | "2"
   if (project.floors <= 3) {
     return { family: "2e famille", familyKey: "2", detail: project.floors === 3 && project.height > 8 ? "Habitation collective R+3, plancher bas supérieur à 8 m." : "Habitation collective jusqu’à R+3.", tone: "success" };
   }
-  if (project.stairDistance > 15) {
-    return { family: "Non conforme", familyKey: "NC", detail: `La distance porte palière / escalier (${project.stairDistance} m) dépasse 15 m.`, tone: "danger" };
-  }
   if (project.floors <= 7 && project.stairDistance <= 10 && project.ladderAccess === "Oui") {
     return { family: "3e famille A", familyKey: "3A", detail: "Toutes les conditions de classement en 3e famille A sont remplies.", tone: "success" };
   }
@@ -136,9 +134,9 @@ function ModuleInput({ question, value, onChange }: { question: QuestionDef; val
     return <div className="choices"><Choice value="Oui" selected={value === "Oui"} onSelect={() => onChange("Oui")} /><Choice value="Non" selected={value === "Non"} onSelect={() => onChange("Non")} /></div>;
   }
   if (question.type === "select") {
-    return <label className="select-field"><select value={String(value ?? "")} onChange={(event) => onChange(event.target.value)}>{question.options?.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>;
+    return <label className="select-field"><select value={String(value ?? "")} onChange={(event) => onChange(event.target.value)}><option value="" disabled>Choisir…</option>{question.options?.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>;
   }
-  return <label className="number-field"><input type="number" min="0" step="0.5" value={Number(value ?? 0)} onChange={(event) => onChange(Number(event.target.value))} /><span>{question.unit}</span></label>;
+  return <label className="number-field"><input type="number" min="0" step="0.5" value={value === "" || value === undefined ? "" : Number(value)} onChange={(event) => onChange(event.target.value === "" ? "" : Number(event.target.value))} /><span>{question.unit}</span></label>;
 }
 
 function ReportSection({ title, subtitle, tone, entries }: { title: string; subtitle: string; tone: "success" | "warning" | "danger"; entries: ReportEntry[] }) {
@@ -166,6 +164,7 @@ export default function Home() {
       familyLabel: result.family,
       collective: project.collective === "Oui",
       height: project.height,
+      stairDistance: project.stairDistance,
     };
     const entries: ReportEntry[] = [];
     const counts: Record<string, number> = {};
@@ -200,7 +199,7 @@ export default function Home() {
       requirements: entries.filter((item) => item.tone === "warning"),
       issues: entries.filter((item) => item.tone === "danger"),
     };
-  }, [answers, project.collective, project.height, result.detail, result.family, result.familyKey]);
+  }, [answers, project.collective, project.height, project.stairDistance, result.detail, result.family, result.familyKey]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -290,7 +289,7 @@ export default function Home() {
             </button>
           ))}
         </nav>
-        <div className="sidebar-footer"><div className="progress-copy"><span>Modules disponibles</span><strong>11 / 11</strong></div><div className="progress-track"><span style={{ width: "100%" }} /></div><button type="button" onClick={() => window.print()}><Icon name="report" />Exporter le rapport</button></div>
+        <div className="sidebar-footer"><div className="progress-copy"><span>Modules disponibles</span><strong>{chapters.length} / {chapters.length}</strong></div><div className="progress-track"><span style={{ width: "100%" }} /></div><button type="button" onClick={() => window.print()}><Icon name="report" />Exporter le rapport</button></div>
       </aside>}
 
       <main className="main">
