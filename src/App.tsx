@@ -111,7 +111,7 @@ function classify(project: ProjectState): { family: string; familyKey: "1" | "2"
   return { family: "3e famille B", familyKey: "3B", detail: `Condition(s) de la 3e famille A non remplie(s) : ${reasons.join(", ")}.`, tone: "warning" };
 }
 
-function Icon({ name }: { name: "home" | "report" | "save" | "arrow" | "check" | "alert" | "menu" | "close" }) {
+function Icon({ name }: { name: "home" | "report" | "save" | "arrow" | "check" | "alert" | "menu" | "close" | "habitation" | "erp" | "back" }) {
   const paths = {
     home: <><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5M9 21v-7h6v7" /></>,
     report: <><path d="M6 2h9l4 4v16H6z" /><path d="M14 2v5h5M9 12h6M9 16h6" /></>,
@@ -121,6 +121,9 @@ function Icon({ name }: { name: "home" | "report" | "save" | "arrow" | "check" |
     alert: <><path d="M12 3 2.7 20h18.6z" /><path d="M12 9v4M12 17h.01" /></>,
     menu: <><path d="M4 6h16M4 12h16M4 18h16" /></>,
     close: <><path d="m6 6 12 12M18 6 6 18" /></>,
+    habitation: <><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-7h6v7" /><path d="M9 10h.01M15 10h.01" /></>,
+    erp: <><path d="M3 21h18M5 21V7h14v14M8 7V3h8v4M8 11h2M14 11h2M8 15h2M14 15h2M11 21v-4h2v4" /></>,
+    back: <><path d="M19 12H5M10 7l-5 5 5 5" /></>,
   };
   return <svg aria-hidden="true" className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
 }
@@ -155,7 +158,7 @@ export default function Home() {
   const [active, setActive] = useState("classification");
   const [saved, setSaved] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [analysisStarted, setAnalysisStarted] = useState(false);
+  const [currentView, setCurrentView] = useState<"welcome" | "sectors" | "habitation" | "erp">("welcome");
   const result = useMemo(() => classify(project), [project]);
 
   const compliance = useMemo(() => {
@@ -244,13 +247,18 @@ export default function Home() {
   const activeIssueCount = compliance.counts[active] ?? 0;
 
   const startAnalysis = () => {
-    setActive("classification");
-    setSidebarOpen(false);
-    setAnalysisStarted(true);
+    setCurrentView("sectors");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  if (!analysisStarted) {
+  const openHabitation = () => {
+    setActive("classification");
+    setSidebarOpen(false);
+    setCurrentView("habitation");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  if (currentView === "welcome") {
     return (
       <main className="welcome-screen screen-app">
         <section className="site-hero welcome-hero">
@@ -267,6 +275,59 @@ export default function Home() {
               <span>Étude enregistrée automatiquement</span>
             </div>
           </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (currentView === "sectors") {
+    return (
+      <main className="sector-screen screen-app">
+        <header className="sector-header">
+          <button className="sector-back" type="button" onClick={() => setCurrentView("welcome")}><Icon name="back" />Retour à l’accueil</button>
+          <Image className="sector-logo" src="/qualiconsult-logo.png" alt="Groupe Qualiconsult" width={456} height={256} priority />
+          <span className="sector-header-spacer" aria-hidden="true" />
+        </header>
+        <section className="sector-content">
+          <span className="eyebrow">Projet Sécurité Incendie</span>
+          <h1>Choisissez votre type de bâtiment</h1>
+          <p>Sélectionnez le domaine réglementaire à analyser.</p>
+          <div className="sector-grid">
+            <button className="sector-card habitation-card" type="button" onClick={openHabitation}>
+              <span className="sector-card-icon"><Icon name="habitation" /></span>
+              <span className="sector-card-status">Questionnaire disponible</span>
+              <strong>Habitation</strong>
+              <small>Arrêté du 31 janvier 1986 modifié</small>
+              <span className="sector-card-action">Ouvrir l’analyse <Icon name="arrow" /></span>
+            </button>
+            <button className="sector-card erp-card" type="button" onClick={() => setCurrentView("erp")}>
+              <span className="sector-card-icon"><Icon name="erp" /></span>
+              <span className="sector-card-status">Nouveau module</span>
+              <strong>ERP</strong>
+              <small>Établissements recevant du public</small>
+              <span className="sector-card-action">Accéder à l’espace <Icon name="arrow" /></span>
+            </button>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (currentView === "erp") {
+    return (
+      <main className="erp-screen screen-app">
+        <header className="sector-header">
+          <button className="sector-back" type="button" onClick={() => setCurrentView("sectors")}><Icon name="back" />Habitation / ERP</button>
+          <Image className="sector-logo" src="/qualiconsult-logo.png" alt="Groupe Qualiconsult" width={456} height={256} priority />
+          <button className="sector-home" type="button" onClick={() => setCurrentView("welcome")} aria-label="Revenir à la page de garde" title="Revenir à la page de garde"><Icon name="home" /></button>
+        </header>
+        <section className="erp-intro">
+          <span className="erp-icon"><Icon name="erp" /></span>
+          <span className="eyebrow">Nouvel espace réglementaire</span>
+          <h1>ERP</h1>
+          <h2>Établissements recevant du public</h2>
+          <p>Cette partie accueillera le prochain questionnaire de sécurité incendie dédié aux ERP.</p>
+          <button className="hero-cta" type="button" onClick={() => setCurrentView("sectors")}><Icon name="back" />Revenir au choix</button>
         </section>
       </main>
     );
@@ -294,7 +355,7 @@ export default function Home() {
 
       <main className="main">
         <header className="topbar">
-          <div className="breadcrumbs">{!sidebarOpen && <button className="sidebar-reopen" type="button" onClick={() => setSidebarOpen(true)} aria-label="Ouvrir la barre latérale"><Icon name="menu" />Menu</button>}<button type="button" onClick={() => { setAnalysisStarted(false); window.scrollTo({ top: 0, behavior: "smooth" }); }} aria-label="Revenir à l’accueil" title="Revenir à l’accueil"><Icon name="home" /></button><span>/</span><span>Qualiconsult Habitations</span><span>/</span><strong>{activeChapter.title}</strong></div>
+          <div className="breadcrumbs">{!sidebarOpen && <button className="sidebar-reopen" type="button" onClick={() => setSidebarOpen(true)} aria-label="Ouvrir la barre latérale"><Icon name="menu" />Menu</button>}<button type="button" onClick={() => { setCurrentView("sectors"); window.scrollTo({ top: 0, behavior: "smooth" }); }} aria-label="Revenir au choix Habitation ou ERP" title="Revenir au choix Habitation ou ERP"><Icon name="home" /></button><span>/</span><span>Qualiconsult Habitations</span><span>/</span><strong>{activeChapter.title}</strong></div>
           <div className="top-actions"><span className={`save-state ${saved ? "saved" : ""}`}><Icon name="save" />{saved ? "Enregistré" : "Enregistrement…"}</span><button className="outline-button" type="button" onClick={() => window.print()}><Icon name="report" />Rapport PDF</button></div>
         </header>
 
