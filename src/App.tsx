@@ -8,7 +8,7 @@ import {
   type ModuleValue,
   type QuestionDef,
 } from "./regulations";
-
+import { ErpWorkspace } from "./ErpWorkspace";
 function Image({ src, alt, priority: _priority, ...props }: {
   src: string;
   alt: string;
