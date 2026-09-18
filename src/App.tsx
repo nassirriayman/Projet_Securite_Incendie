@@ -8,7 +8,7 @@ import {
   type ModuleValue,
   type QuestionDef,
 } from "./regulations";
-import { ErpWorkspace } from "./ErpWorkspace";
+
 function Image({ src, alt, priority: _priority, ...props }: {
   src: string;
   alt: string;
@@ -321,7 +321,14 @@ export default function Home() {
           <Image className="sector-logo" src="/qualiconsult-logo.png" alt="Groupe Qualiconsult" width={456} height={256} priority />
           <button className="sector-home" type="button" onClick={() => setCurrentView("welcome")} aria-label="Revenir à la page de garde" title="Revenir à la page de garde"><Icon name="home" /></button>
         </header>
- <ErpWorkspace />
+        <section className="erp-intro">
+          <span className="erp-icon"><Icon name="erp" /></span>
+          <span className="eyebrow">Nouvel espace réglementaire</span>
+          <h1>ERP</h1>
+          <h2>Établissements recevant du public</h2>
+          <p>Cette partie accueillera le prochain questionnaire de sécurité incendie dédié aux ERP.</p>
+          <button className="hero-cta" type="button" onClick={() => setCurrentView("sectors")}><Icon name="back" />Revenir au choix</button>
+        </section>
       </main>
     );
   }
