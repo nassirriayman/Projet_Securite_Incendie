@@ -137,3 +137,352 @@ button { color: inherit; }
 }
 
 @media print { @page { size: A4; margin: 12mm; } html, body { background: #fff; print-color-adjust: exact; -webkit-print-color-adjust: exact; }.screen-app { display: none !important; }.report-document { display: block; max-width: none; padding: 0; }.report-cover { break-after: page; }.report-content { padding: 0; }.report-header img { width: 160px; height: 78px; }.report-project, .report-summary, .report-issues li { break-inside: avoid; }.report-footer { position: running(reportFooter); } }
+
+
+/* Module ERP — calcul des effectifs J, L, M et N */
+.erp-builder {
+  width: min(1380px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 52px 0 72px;
+}
+
+.erp-builder-heading {
+  max-width: 760px;
+  margin-bottom: 30px;
+}
+
+.erp-builder-heading > span,
+.erp-type-title small,
+.erp-calculation > small {
+  color: #e54822;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.erp-builder-heading h1 {
+  margin: 8px 0 10px;
+  color: #17181b;
+  font-size: clamp(2rem, 4vw, 3.7rem);
+  line-height: 1;
+}
+
+.erp-builder-heading p,
+.erp-type-title p {
+  margin: 0;
+  color: #62666d;
+  line-height: 1.6;
+}
+
+.erp-builder-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 390px;
+  gap: 24px;
+  align-items: start;
+}
+
+.erp-builder-form {
+  display: grid;
+  gap: 20px;
+}
+
+.erp-question-card {
+  position: relative;
+  padding: 28px;
+  border: 1px solid #e4e5e8;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 14px 35px rgba(22, 24, 28, 0.06);
+}
+
+.erp-step {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 10px;
+  background: #17181b;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.erp-main-select,
+.erp-mode-select {
+  display: grid;
+  gap: 12px;
+}
+
+.erp-main-select {
+  padding-right: 54px;
+}
+
+.erp-main-select strong {
+  color: #1c1d20;
+  font-size: clamp(1.1rem, 2vw, 1.45rem);
+}
+
+.erp-main-select select,
+.erp-mode-select select,
+.erp-number-field input {
+  width: 100%;
+  min-height: 50px;
+  border: 1px solid #d9dadd;
+  border-radius: 12px;
+  background: #f8f8f9;
+  color: #1e2023;
+  font: inherit;
+  outline: none;
+}
+
+.erp-main-select select,
+.erp-mode-select select {
+  padding: 0 42px 0 14px;
+  cursor: pointer;
+}
+
+.erp-main-select select:focus,
+.erp-mode-select select:focus,
+.erp-number-field input:focus {
+  border-color: #e54822;
+  box-shadow: 0 0 0 3px rgba(229, 72, 34, 0.12);
+}
+
+.erp-type-title {
+  margin: 0 54px 24px 0;
+}
+
+.erp-type-title h2 {
+  margin: 5px 0;
+  color: #202125;
+  font-size: 1.5rem;
+}
+
+.erp-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.erp-number-field {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid #e7e7e9;
+  border-radius: 14px;
+  background: #fafafa;
+}
+
+.erp-number-field > span,
+.erp-mode-select > span,
+.erp-choice-row > span {
+  color: #33363b;
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.erp-number-field > div {
+  position: relative;
+}
+
+.erp-number-field input {
+  padding: 0 92px 0 13px;
+  background: #fff;
+  font-weight: 800;
+}
+
+.erp-number-field div small {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  color: #787c83;
+  font-size: 0.72rem;
+  transform: translateY(-50%);
+}
+
+.erp-number-field em {
+  color: #777b82;
+  font-size: 0.73rem;
+  font-style: normal;
+  line-height: 1.4;
+}
+
+.erp-mode-select,
+.erp-choice-row,
+.erp-inline-warning {
+  grid-column: 1 / -1;
+}
+
+.erp-mode-select {
+  padding: 16px;
+  border-radius: 14px;
+  background: #f1f1f2;
+}
+
+.erp-choice-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 14px;
+  background: #f1f1f2;
+}
+
+.erp-choice-row > span {
+  margin-right: auto;
+}
+
+.erp-choice-row button {
+  min-width: 62px;
+  padding: 9px 14px;
+  border: 1px solid #d5d6d9;
+  border-radius: 9px;
+  background: #fff;
+  color: #555960;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.erp-choice-row button.active {
+  border-color: #e54822;
+  background: #e54822;
+  color: #fff;
+}
+
+.erp-inline-warning {
+  margin: 0;
+  padding: 14px 16px;
+  border-left: 4px solid #c83425;
+  border-radius: 10px;
+  background: #fff0ed;
+  color: #a52d20;
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.erp-calculation {
+  position: sticky;
+  top: 22px;
+  overflow: hidden;
+  padding: 28px;
+  border-radius: 22px;
+  background: #17181b;
+  color: #fff;
+  box-shadow: 0 18px 45px rgba(14, 15, 18, 0.18);
+}
+
+.erp-calculation h2 {
+  margin: 8px 0 14px;
+  font-size: 1.35rem;
+}
+
+.erp-calculation > strong {
+  display: block;
+  color: #fff;
+  font-size: clamp(4rem, 8vw, 6.2rem);
+  line-height: 0.9;
+}
+
+.erp-calculation > span {
+  display: block;
+  margin-top: 8px;
+  color: #c7c9ce;
+  font-weight: 700;
+}
+
+.erp-calculation-rows {
+  display: grid;
+  gap: 1px;
+  margin: 25px -28px 0;
+  border-top: 1px solid #34363b;
+  border-bottom: 1px solid #34363b;
+  background: #34363b;
+}
+
+.erp-calculation-rows div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 28px;
+  background: #202226;
+}
+
+.erp-calculation-rows div span {
+  color: #c5c7cb;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.erp-calculation-rows div b {
+  color: #fff;
+}
+
+.erp-calculation-rows > p {
+  margin: 0;
+  padding: 20px 28px;
+  background: #202226;
+  color: #aeb1b7;
+  font-size: 0.82rem;
+}
+
+.erp-rounding-note {
+  margin: 18px 0 0;
+  color: #aeb1b7;
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 980px) {
+  .erp-builder-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .erp-calculation {
+    position: static;
+  }
+}
+
+@media (max-width: 680px) {
+  .erp-builder {
+    width: min(100% - 24px, 1380px);
+    padding: 32px 0 48px;
+  }
+
+  .erp-question-card,
+  .erp-calculation {
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .erp-fields-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .erp-calculation-rows {
+    margin-right: -20px;
+    margin-left: -20px;
+  }
+
+  .erp-calculation-rows div {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+
+  .erp-choice-row {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .erp-choice-row > span {
+    flex-basis: 100%;
+    margin-bottom: 4px;
+  }
+}
