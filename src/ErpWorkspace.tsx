@@ -240,9 +240,9 @@ export function ErpWorkspace() {
 
                   {mMode === "general" && (
                     <>
-                      <NumberField label={mMode === "mall" ? "Autres locaux de vente — sous-sol, RDC et 1er étage" : "Surface de vente — sous-sol, RDC et 1er étage"} value={value("mLower")} onChange={(next) => setValue("mLower", next)} unit="m²" />
-                      <NumberField label={mMode === "mall" ? "Autres locaux de vente — 2e étage" : "Surface de vente — 2e étage"} value={value("mSecond")} onChange={(next) => setValue("mSecond", next)} unit="m²" />
-                      <NumberField label={mMode === "mall" ? "Autres locaux de vente — étages supérieurs" : "Surface de vente — étages supérieurs"} value={value("mUpper")} onChange={(next) => setValue("mUpper", next)} unit="m²" />
+                      <NumberField label="Surface de vente — sous-sol, RDC et 1er étage" value={value("mLower")} onChange={(next) => setValue("mLower", next)} unit="m²" />
+                      <NumberField label="Surface de vente — 2e étage" value={value("mSecond")} onChange={(next) => setValue("mSecond", next)} unit="m²" />
+                      <NumberField label="Surface de vente — étages supérieurs" value={value("mUpper")} onChange={(next) => setValue("mUpper", next)} unit="m²" />
                     </>
                   )}
 
