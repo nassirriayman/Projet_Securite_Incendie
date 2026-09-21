@@ -52,7 +52,7 @@ export function ErpWorkspace() {
   const [type, setType] = useState<ErpType>("J");
   const [values, setValues] = useState<Record<string, number>>({});
   const [mMode, setMMode] = useState<MMode>("general");
-  const [mallShops, setMallShops] = useState<MallShop[]>([]);
+  const [mallShops, setMallShops] = useState<MallShop[]>([{ id: 1, surface: 0, level: "lower" }]);
   const [nDeclared, setNDeclared] = useState(true);
 
   const value = (key: string) => values[key] ?? 0;
@@ -112,9 +112,6 @@ export function ErpWorkspace() {
       if (mMode === "mall") {
         rows.push(
           { label: "Mails (1 pers./5 m²)", value: occupancy(value("mMalls"), 5) },
-          { label: "Vente — sous-sol, RDC et 1er (1 pers./3 m²)", value: occupancy(value("mLower"), 3) },
-          { label: "Vente — 2e étage (1 pers./6 m²)", value: occupancy(value("mSecond"), 6) },
-          { label: "Vente — étages supérieurs (1 pers./15 m²)", value: occupancy(value("mUpper"), 15) },
         );
         mallShops.forEach((shop, index) => {
           if (shop.surface <= 0) return;
@@ -238,10 +235,10 @@ export function ErpWorkspace() {
                   </label>
 
                   {mMode === "mall" && (
-                    <NumberField label="Surface totale des mails" value={value("mMalls")} onChange={(next) => setValue("mMalls", next)} unit="m²" />
+                    <NumberField label="Surface totale des mails (circulations communes)" value={value("mMalls")} onChange={(next) => setValue("mMalls", next)} unit="m²" hint="Ne pas inclure la surface des boutiques dans les mails." />
                   )}
 
-                  {(mMode === "general" || mMode === "mall") && (
+                  {mMode === "general" && (
                     <>
                       <NumberField label={mMode === "mall" ? "Autres locaux de vente — sous-sol, RDC et 1er étage" : "Surface de vente — sous-sol, RDC et 1er étage"} value={value("mLower")} onChange={(next) => setValue("mLower", next)} unit="m²" />
                       <NumberField label={mMode === "mall" ? "Autres locaux de vente — 2e étage" : "Surface de vente — 2e étage"} value={value("mSecond")} onChange={(next) => setValue("mSecond", next)} unit="m²" />
@@ -253,10 +250,10 @@ export function ErpWorkspace() {
                     <div className="erp-mall-shops">
                       <div className="erp-mall-shops-heading">
                         <div>
-                          <h3>Boutiques du centre commercial</h3>
-                          <p>Ajoutez chaque boutique séparément : la règle dépend de sa surface et de son étage.</p>
+                          <h3>Locaux de vente du centre commercial</h3>
+                          <p>Saisissez chaque boutique séparément, même à partir de 300 m². La densité dépend automatiquement de sa surface et de son étage.</p>
                         </div>
-                        <button type="button" onClick={addMallShop}>+ Ajouter une boutique</button>
+                        <button type="button" onClick={addMallShop}>+ Ajouter un local de vente</button>
                       </div>
                       {mallShops.map((shop, index) => {
                         const divisor = shop.surface < 300
