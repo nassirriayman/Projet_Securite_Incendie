@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 
 type ErpType = "J" | "L" | "M" | "N";
 type MMode = "general" | "mall" | "low" | "professional";
+type ShopLevel = "lower" | "second" | "upper";
+type MallShop = { id: number; surface: number; level: ShopLevel };
 type CalculationRow = { label: string; value: number };
 
 const ERP_TYPES: Array<{ code: ErpType; label: string; article: string }> = [
@@ -50,11 +52,26 @@ export function ErpWorkspace() {
   const [type, setType] = useState<ErpType>("J");
   const [values, setValues] = useState<Record<string, number>>({});
   const [mMode, setMMode] = useState<MMode>("general");
+  const [mallShops, setMallShops] = useState<MallShop[]>([]);
   const [nDeclared, setNDeclared] = useState(true);
 
   const value = (key: string) => values[key] ?? 0;
   const setValue = (key: string, next: number) =>
     setValues((current) => ({ ...current, [key]: next }));
+
+  const addMallShop = () =>
+    setMallShops((current) => [
+      ...current,
+      { id: Math.max(0, ...current.map((shop) => shop.id)) + 1, surface: 0, level: "lower" },
+    ]);
+
+  const updateMallShop = (id: number, changes: Partial<Omit<MallShop, "id">>) =>
+    setMallShops((current) =>
+      current.map((shop) => (shop.id === id ? { ...shop, ...changes } : shop)),
+    );
+
+  const removeMallShop = (id: number) =>
+    setMallShops((current) => current.filter((shop) => shop.id !== id));
 
   const calculation = useMemo(() => {
     const rows: CalculationRow[] = [];
@@ -98,8 +115,18 @@ export function ErpWorkspace() {
           { label: "Vente — sous-sol, RDC et 1er (1 pers./3 m²)", value: occupancy(value("mLower"), 3) },
           { label: "Vente — 2e étage (1 pers./6 m²)", value: occupancy(value("mSecond"), 6) },
           { label: "Vente — étages supérieurs (1 pers./15 m²)", value: occupancy(value("mUpper"), 15) },
-          { label: "Boutiques de moins de 300 m² (1 pers./6 m²)", value: occupancy(value("mSmall"), 6) },
         );
+        mallShops.forEach((shop, index) => {
+          if (shop.surface <= 0) return;
+          const divisor = shop.surface < 300
+            ? 6
+            : shop.level === "lower" ? 3 : shop.level === "second" ? 6 : 15;
+          const rule = shop.surface < 300 ? "moins de 300 m²" : "règle du niveau";
+          rows.push({
+            label: `Boutique ${index + 1} — ${rule} (1 pers./${divisor} m²)`,
+            value: occupancy(shop.surface, divisor),
+          });
+        });
       }
       if (mMode === "low") {
         rows.push({ label: "Magasin à faible densité (1 pers./9 m²)", value: occupancy(value("mLow"), 9) });
@@ -125,7 +152,7 @@ export function ErpWorkspace() {
       rows: visibleRows,
       total: visibleRows.reduce((sum, row) => sum + row.value, 0),
     };
-  }, [mMode, nDeclared, type, values]);
+  }, [mMode, mallShops, nDeclared, type, values]);
 
   const selected = ERP_TYPES.find((item) => item.code === type) ?? ERP_TYPES[0];
   const nDeclarationInvalid =
@@ -216,20 +243,57 @@ export function ErpWorkspace() {
 
                   {(mMode === "general" || mMode === "mall") && (
                     <>
-                      <NumberField label="Surface de vente — sous-sol, RDC et 1er étage" value={value("mLower")} onChange={(next) => setValue("mLower", next)} unit="m²" />
-                      <NumberField label="Surface de vente — 2e étage" value={value("mSecond")} onChange={(next) => setValue("mSecond", next)} unit="m²" />
-                      <NumberField label="Surface de vente — étages supérieurs" value={value("mUpper")} onChange={(next) => setValue("mUpper", next)} unit="m²" />
+                      <NumberField label={mMode === "mall" ? "Autres locaux de vente — sous-sol, RDC et 1er étage" : "Surface de vente — sous-sol, RDC et 1er étage"} value={value("mLower")} onChange={(next) => setValue("mLower", next)} unit="m²" />
+                      <NumberField label={mMode === "mall" ? "Autres locaux de vente — 2e étage" : "Surface de vente — 2e étage"} value={value("mSecond")} onChange={(next) => setValue("mSecond", next)} unit="m²" />
+                      <NumberField label={mMode === "mall" ? "Autres locaux de vente — étages supérieurs" : "Surface de vente — étages supérieurs"} value={value("mUpper")} onChange={(next) => setValue("mUpper", next)} unit="m²" />
                     </>
                   )}
 
                   {mMode === "mall" && (
-                    <NumberField
-                      label="Surface des boutiques de moins de 300 m²"
-                      value={value("mSmall")}
-                      onChange={(next) => setValue("mSmall", next)}
-                      unit="m²"
-                      hint="Ne pas inclure à nouveau cette surface dans les autres surfaces de vente."
-                    />
+                    <div className="erp-mall-shops">
+                      <div className="erp-mall-shops-heading">
+                        <div>
+                          <h3>Boutiques du centre commercial</h3>
+                          <p>Ajoutez chaque boutique séparément : la règle dépend de sa surface et de son étage.</p>
+                        </div>
+                        <button type="button" onClick={addMallShop}>+ Ajouter une boutique</button>
+                      </div>
+                      {mallShops.map((shop, index) => {
+                        const divisor = shop.surface < 300
+                          ? 6
+                          : shop.level === "lower" ? 3 : shop.level === "second" ? 6 : 15;
+                        return (
+                          <div className="erp-mall-shop" key={shop.id}>
+                            <div className="erp-mall-shop-heading">
+                              <strong>Boutique {index + 1}</strong>
+                              <button type="button" onClick={() => removeMallShop(shop.id)} aria-label={`Supprimer la boutique ${index + 1}`}>Supprimer</button>
+                            </div>
+                            <NumberField
+                              label="Surface de vente de cette boutique"
+                              value={shop.surface}
+                              onChange={(surface) => updateMallShop(shop.id, { surface })}
+                              unit="m²"
+                            />
+                            <label className="erp-mall-shop-level">
+                              <span>Étage de la boutique</span>
+                              <select
+                                value={shop.level}
+                                onChange={(event) => updateMallShop(shop.id, { level: event.target.value as ShopLevel })}
+                              >
+                                <option value="lower">Sous-sol, RDC ou 1er étage</option>
+                                <option value="second">2e étage</option>
+                                <option value="upper">3e étage et au-delà</option>
+                              </select>
+                            </label>
+                            <p className="erp-mall-shop-result" aria-live="polite">
+                              {shop.surface > 0
+                                ? `${shop.surface < 300 ? "Moins de 300 m²" : "À partir de 300 m²"} : 1 personne pour ${divisor} m², soit ${occupancy(shop.surface, divisor)} personne(s).`
+                                : "Indiquez la surface pour afficher la règle appliquée."}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
                   )}
 
                   {mMode === "low" && (

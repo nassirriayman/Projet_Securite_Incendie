@@ -486,3 +486,113 @@ button { color: inherit; }
     margin-bottom: 4px;
   }
 }
+
+/* Boutiques individuelles du centre commercial */
+.erp-mall-shops {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.erp-mall-shops-heading,
+.erp-mall-shop-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.erp-mall-shops-heading h3 {
+  margin: 0 0 5px;
+  font-size: 1.05rem;
+}
+
+.erp-mall-shops-heading p {
+  margin: 0;
+  color: #696c72;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.erp-mall-shops-heading button {
+  flex-shrink: 0;
+  padding: 11px 15px;
+  border: 0;
+  border-radius: 10px;
+  background: #e54822;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.erp-mall-shop {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #e6e7ea;
+  border-radius: 14px;
+  background: #fafafa;
+}
+
+.erp-mall-shop-heading,
+.erp-mall-shop-result {
+  grid-column: 1 / -1;
+}
+
+.erp-mall-shop-heading button {
+  border: 0;
+  background: transparent;
+  color: #b32e1a;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.erp-mall-shop-level {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid #e7e7e9;
+  border-radius: 14px;
+}
+
+.erp-mall-shop-level span {
+  color: #33363b;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.erp-mall-shop-level select {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 10px;
+  border: 1px solid #d9dadd;
+  border-radius: 12px;
+  background: #fff;
+  color: #1e2023;
+  font: inherit;
+}
+
+.erp-mall-shop-result {
+  margin: 0;
+  color: #47514b;
+  font-size: 0.83rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 680px) {
+  .erp-mall-shops-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .erp-mall-shop {
+    grid-template-columns: 1fr;
+  }
+
+  .erp-mall-shop-level {
+    grid-column: 1 / -1;
+  }
+}
