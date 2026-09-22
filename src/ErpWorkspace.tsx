@@ -1,10 +1,22 @@
 import { useMemo, useState } from "react";
 
 type ErpType = "J" | "L" | "M" | "N";
+type LActivity = "a" | "b" | "c" | "d" | "e" | "f" | "g";
+type LMode = "audience" | "meeting";
 type MMode = "general" | "mall" | "low" | "professional";
 type ShopLevel = "lower" | "second" | "upper";
 type MallShop = { id: number; surface: number; level: ShopLevel };
 type CalculationRow = { label: string; value: number };
+
+const L_ACTIVITIES: Array<{ code: LActivity; label: string }> = [
+  { code: "a", label: "Audition, conférence, réunion ou pari" },
+  { code: "b", label: "Salle d’association ou de quartier" },
+  { code: "c", label: "Projection ou spectacle" },
+  { code: "d", label: "Cabaret" },
+  { code: "e", label: "Salle polyvalente sportive (≥ 1 200 m² ou hauteur < 6,50 m)" },
+  { code: "f", label: "Autre salle polyvalente" },
+  { code: "g", label: "Salle multimédia" },
+];
 
 const ERP_TYPES: Array<{ code: ErpType; label: string; article: string }> = [
   { code: "J", label: "Structures d’accueil pour personnes âgées ou handicapées", article: "J 2" },
@@ -51,6 +63,9 @@ function NumberField({
 export function ErpWorkspace() {
   const [type, setType] = useState<ErpType>("J");
   const [values, setValues] = useState<Record<string, number>>({});
+  const [lActivity, setLActivity] = useState<LActivity>("a");
+  const [lMode, setLMode] = useState<LMode>("audience");
+  const [lBasement, setLBasement] = useState<number | "">("");
   const [mMode, setMMode] = useState<MMode>("general");
   const [mallShops, setMallShops] = useState<MallShop[]>([{ id: 1, surface: 0, level: "lower" }]);
   const [nDeclared, setNDeclared] = useState(true);
@@ -58,6 +73,13 @@ export function ErpWorkspace() {
   const value = (key: string) => values[key] ?? 0;
   const setValue = (key: string, next: number) =>
     setValues((current) => ({ ...current, [key]: next }));
+
+  const resetLInputs = () => {
+    setValues((current) =>
+      Object.fromEntries(Object.entries(current).filter(([key]) => !key.startsWith("l"))),
+    );
+    setLBasement("");
+  };
 
   const addMallShop = () =>
     setMallShops((current) => [
@@ -86,19 +108,25 @@ export function ErpWorkspace() {
     }
 
     if (type === "L") {
-      rows.push(
-        { label: "Places numérotées", value: occupancy(value("lNumbered")) },
-        { label: "Bancs non numérotés (2 pers./m)", value: occupancy(value("lBenches") * 2) },
-        { label: "Zones sans sièges (3 pers./m²)", value: occupancy(value("lStanding") * 3) },
-        { label: "Promenoirs et files (5 pers./m)", value: occupancy(value("lQueues") * 5) },
-        { label: "Cabarets (4 pers./3 m²)", value: occupancy(value("lCabaret") * 4, 3) },
-        { label: "Salles polyvalentes (1 pers./m²)", value: occupancy(value("lPolyvalent")) },
-        { label: "Réunions sans spectacle (1 pers./m²)", value: occupancy(value("lMeeting")) },
-        {
-          label: "Salles multimédia",
+      if ((lActivity === "a" || lActivity === "b") && lMode === "meeting") {
+        rows.push({ label: "Réunion sans spectacle (1 pers./m²)", value: occupancy(value("lMeeting")) });
+      } else if (lActivity === "a" || lActivity === "b" || lActivity === "c") {
+        rows.push(
+          { label: "Places numérotées", value: occupancy(value("lNumbered")) },
+          { label: "Bancs non numérotés (2 pers./m)", value: occupancy(value("lBenches") * 2) },
+          { label: "Zones sans sièges (3 pers./m²)", value: occupancy(value("lStanding") * 3) },
+          { label: "Promenoirs et files (5 pers./m)", value: occupancy(value("lQueues") * 5) },
+        );
+      } else if (lActivity === "d") {
+        rows.push({ label: "Cabaret (4 pers./3 m²)", value: occupancy(value("lCabaret") * 4, 3) });
+      } else if (lActivity === "e" || lActivity === "f") {
+        rows.push({ label: "Salle polyvalente (1 pers./m²)", value: occupancy(value("lPolyvalent")) });
+      } else if (lActivity === "g") {
+        rows.push({
+          label: "Salle multimédia (déclaration, minimum 1 pers./2 m²)",
           value: Math.max(occupancy(value("lMultimedia"), 2), occupancy(value("lMultimediaDeclared"))),
-        },
-      );
+        });
+      }
     }
 
     if (type === "M") {
@@ -149,9 +177,15 @@ export function ErpWorkspace() {
       rows: visibleRows,
       total: visibleRows.reduce((sum, row) => sum + row.value, 0),
     };
-  }, [mMode, mallShops, nDeclared, type, values]);
+  }, [lActivity, lMode, mMode, mallShops, nDeclared, type, values]);
 
   const selected = ERP_TYPES.find((item) => item.code === type) ?? ERP_TYPES[0];
+  const lBasementThreshold = lActivity === "c" || lActivity === "d" ? 20 : 100;
+  const lTotalThreshold = lActivity === "c" || lActivity === "d" ? 50 : 200;
+  const lBasementInvalid = type === "L" && lBasement !== "" && lBasement > calculation.total;
+  const lThresholdReached =
+    calculation.total >= lTotalThreshold ||
+    (lBasement !== "" && !lBasementInvalid && lBasement >= lBasementThreshold);
   const nDeclarationInvalid =
     type === "N" &&
     nDeclared &&
@@ -210,15 +244,95 @@ export function ErpWorkspace() {
 
               {type === "L" && (
                 <>
-                  <NumberField label="Places assises numérotées" value={value("lNumbered")} onChange={(next) => setValue("lNumbered", next)} unit="places" />
-                  <NumberField label="Longueur des bancs non numérotés" value={value("lBenches")} onChange={(next) => setValue("lBenches", next)} unit="m linéaires" />
-                  <NumberField label="Surface sans sièges ni bancs" value={value("lStanding")} onChange={(next) => setValue("lStanding", next)} unit="m²" />
-                  <NumberField label="Longueur des promenoirs et files d’attente" value={value("lQueues")} onChange={(next) => setValue("lQueues", next)} unit="m linéaires" />
-                  <NumberField label="Surface utile des cabarets" value={value("lCabaret")} onChange={(next) => setValue("lCabaret", next)} unit="m²" hint="Après déduction des estrades et aménagements fixes concernés." />
-                  <NumberField label="Surface totale des salles polyvalentes" value={value("lPolyvalent")} onChange={(next) => setValue("lPolyvalent", next)} unit="m²" />
-                  <NumberField label="Surface des salles de réunion sans spectacle" value={value("lMeeting")} onChange={(next) => setValue("lMeeting", next)} unit="m²" />
-                  <NumberField label="Surface totale des salles multimédia" value={value("lMultimedia")} onChange={(next) => setValue("lMultimedia", next)} unit="m²" />
-                  <NumberField label="Effectif déclaré des salles multimédia" value={value("lMultimediaDeclared")} onChange={(next) => setValue("lMultimediaDeclared", next)} unit="personnes" hint="Le minimum réglementaire de 1 personne pour 2 m² reste appliqué." />
+                  <label className="erp-mode-select">
+                    <span>Activité principale de la salle (article L 1 § 1)</span>
+                    <select
+                      value={lActivity}
+                      onChange={(event) => {
+                        setLActivity(event.target.value as LActivity);
+                        setLMode("audience");
+                        resetLInputs();
+                      }}
+                    >
+                      {L_ACTIVITIES.map((activity) => (
+                        <option key={activity.code} value={activity.code}>
+                          {activity.code.toUpperCase()} — {activity.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  {(lActivity === "a" || lActivity === "b") && (
+                    <label className="erp-mode-select">
+                      <span>Configuration de la salle</span>
+                      <select
+                        value={lMode}
+                        onChange={(event) => {
+                          setLMode(event.target.value as LMode);
+                          resetLInputs();
+                        }}
+                      >
+                        <option value="audience">Places assises, public debout ou files</option>
+                        <option value="meeting">Réunion sans spectacle</option>
+                      </select>
+                    </label>
+                  )}
+
+                  {(lActivity === "a" || lActivity === "b") && lMode === "meeting" ? (
+                    <NumberField label="Surface totale de la salle de réunion" value={value("lMeeting")} onChange={(next) => setValue("lMeeting", next)} unit="m²" />
+                  ) : (lActivity === "a" || lActivity === "b" || lActivity === "c") && (
+                    <>
+                      <NumberField label="Places assises numérotées" value={value("lNumbered")} onChange={(next) => setValue("lNumbered", next)} unit="places" />
+                      <NumberField label="Longueur des bancs non numérotés" value={value("lBenches")} onChange={(next) => setValue("lBenches", next)} unit="m linéaires" />
+                      <NumberField label="Surface du public sans siège ni banc" value={value("lStanding")} onChange={(next) => setValue("lStanding", next)} unit="m²" />
+                      <NumberField label="Longueur des promenoirs et files d’attente" value={value("lQueues")} onChange={(next) => setValue("lQueues", next)} unit="m linéaires" />
+                    </>
+                  )}
+
+                  {lActivity === "d" && (
+                    <NumberField label="Surface utile du cabaret" value={value("lCabaret")} onChange={(next) => setValue("lCabaret", next)} unit="m²" hint="Déduire les estrades des musiciens et les aménagements fixes autres que les tables et sièges." />
+                  )}
+
+                  {(lActivity === "e" || lActivity === "f") && (
+                    <NumberField label="Surface totale de la salle polyvalente" value={value("lPolyvalent")} onChange={(next) => setValue("lPolyvalent", next)} unit="m²" />
+                  )}
+
+                  {lActivity === "g" && (
+                    <>
+                      <NumberField label="Surface totale de la salle multimédia" value={value("lMultimedia")} onChange={(next) => setValue("lMultimedia", next)} unit="m²" />
+                      <NumberField label="Effectif déclaré par le maître d’ouvrage" value={value("lMultimediaDeclared")} onChange={(next) => setValue("lMultimediaDeclared", next)} unit="personnes" hint="Le résultat retient au minimum 1 personne pour 2 m²." />
+                    </>
+                  )}
+
+                  <div className="erp-mode-select">
+                    <strong>L 1 § 2 · Seuil d’assujettissement</strong>
+                    <span>{lBasementThreshold} personnes en sous-sol ou {lTotalThreshold} personnes au total.</span>
+                    <label className="erp-number-field">
+                      <span>Dont personnes admises en sous-sol (comprises dans le total)</span>
+                      <div>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={lBasement}
+                          placeholder="À renseigner"
+                          onChange={(event) =>
+                            setLBasement(event.target.value === "" ? "" : Math.max(0, Math.floor(Number(event.target.value))))
+                          }
+                        />
+                        <small>personnes</small>
+                      </div>
+                    </label>
+                    {lBasementInvalid ? (
+                      <span>Vérifiez l’effectif en sous-sol : il dépasse l’effectif total calculé.</span>
+                    ) : lThresholdReached ? (
+                      <span>Seuil d’assujettissement atteint.</span>
+                    ) : lBasement === "" ? (
+                      <span>Renseignez l’effectif en sous-sol pour vérifier ce seuil.</span>
+                    ) : (
+                      <span>Seuil d’assujettissement non atteint avec les valeurs saisies.</span>
+                    )}
+                  </div>
                 </>
               )}
 
