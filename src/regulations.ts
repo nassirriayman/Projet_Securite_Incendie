@@ -504,7 +504,7 @@ function protectedCorridors(ctx: ModuleContext, a: ModuleAnswers): ModuleConfig 
     else {
       const current = value(a, key);
       r.push(result(label, okay(current) ? successText(current) : failureText(current), okay(current) ? "success" : "danger"));
-    }
+    } 
   };
   const reactionOptions = ["M0", "M1", "M2", "M3", "M4"];
   const airReactionOptions = [...reactionOptions, "Bois"];
