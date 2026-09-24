@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 
-type ErpType = "J" | "L" | "M" | "N" | "S" | "T";
+type ErpType = "J" | "L" | "M" | "N" | "O" | "P" | "R" | "S" | "T";
 type LActivity = "a" | "b" | "c" | "d" | "e" | "f" | "g";
 type LMode = "audience" | "meeting";
 type TMode = "temporary" | "permanent";
+type PMode = "general" | "billiard";
 type MMode = "general" | "mall" | "low" | "professional";
 type ShopLevel = "lower" | "second" | "upper";
 type MallShop = { id: number; surface: number; level: ShopLevel };
@@ -24,6 +25,9 @@ const ERP_TYPES: Array<{ code: ErpType; label: string; article: string }> = [
   { code: "L", label: "Salles d’auditions, conférences, réunions, spectacles ou polyvalentes", article: "L 3" },
   { code: "M", label: "Magasins de vente et centres commerciaux", article: "M 2" },
   { code: "N", label: "Restaurants et débits de boissons", article: "N 2" },
+  { code: "O", label: "Hôtels et autres établissements d’hébergement", article: "O 2" },
+  { code: "P", label: "Salles de danse et salles de jeux", article: "P 2" },
+  { code: "R", label: "Établissements d’enseignement, de formation et centres de loisirs", article: "R 2" },
   { code: "S", label: "Bibliothèques et centres de documentation", article: "S 2" },
   { code: "T", label: "Salles d’expositions", article: "T 2" },
 ];
@@ -73,6 +77,7 @@ export function ErpWorkspace() {
   const [mallShops, setMallShops] = useState<MallShop[]>([{ id: 1, surface: 0, level: "lower" }]);
   const [nDeclared, setNDeclared] = useState(true);
   const [tMode, setTMode] = useState<TMode>("temporary");
+  const [pMode, setPMode] = useState<PMode>("general");
 
   const value = (key: string) => values[key] ?? 0;
   const setValue = (key: string, next: number) =>
@@ -176,6 +181,35 @@ export function ErpWorkspace() {
       );
     }
 
+    if (type === "O") {
+      rows.push({
+        label: "Capacité maximale des chambres et appartements",
+        value: occupancy(value("oCapacity")),
+      });
+    }
+
+    if (type === "P") {
+      if (pMode === "general") {
+        rows.push({
+          label: "Salle de danse ou de jeux (4 pers./3 m²)",
+          value: occupancy(value("pUsefulArea") * 4, 3),
+        });
+      } else {
+        rows.push(
+          { label: "Billards (4 personnes par billard)", value: occupancy(value("pBilliards") * 4) },
+          { label: "Places supplémentaires réservées au public", value: occupancy(value("pPublicPlaces")) },
+          { label: "Activité annexe de type N", value: occupancy(value("pAnnexN")) },
+        );
+      }
+    }
+
+    if (type === "R") {
+      rows.push({
+        label: "Effectif maximal simultané selon la déclaration contrôlée",
+        value: occupancy(value("rDeclared")),
+      });
+    }
+
     if (type === "S") {
       rows.push({
         label: "Effectif selon la déclaration du maître d’ouvrage ou du chef d’établissement",
@@ -198,7 +232,7 @@ export function ErpWorkspace() {
       rows: visibleRows,
       total: visibleRows.reduce((sum, row) => sum + row.value, 0),
     };
-  }, [lActivity, lMode, mMode, mallShops, nDeclared, tMode, type, values]);
+  }, [lActivity, lMode, mMode, mallShops, nDeclared, pMode, tMode, type, values]);
 
   const selected = ERP_TYPES.find((item) => item.code === type) ?? ERP_TYPES[0];
   const lBasementThreshold = lActivity === "c" || lActivity === "d" ? 20 : 100;
@@ -355,6 +389,53 @@ export function ErpWorkspace() {
                     )}
                   </div>
                 </>
+              )}
+
+              {type === "O" && (
+                <NumberField
+                  label="Nombre maximal de personnes pouvant occuper les chambres ou appartements"
+                  value={value("oCapacity")}
+                  onChange={(next) => setValue("oCapacity", next)}
+                  unit="personnes"
+                  hint="Selon l’occupation déclarée ou les conditions d’exploitation hôtelière d’usage. Les salles réservées exclusivement aux clients ne sont pas ajoutées."
+                />
+              )}
+
+              {type === "P" && (
+                <>
+                  <label className="erp-mode-select">
+                    <span>Configuration de l’établissement</span>
+                    <select value={pMode} onChange={(event) => setPMode(event.target.value as PMode)}>
+                      <option value="general">Salle de danse ou salle de jeux</option>
+                      <option value="billiard">Salle exclusivement réservée au billard</option>
+                    </select>
+                  </label>
+                  {pMode === "general" ? (
+                    <NumberField
+                      label="Surface utile de la salle"
+                      value={value("pUsefulArea")}
+                      onChange={(next) => setValue("pUsefulArea", next)}
+                      unit="m²"
+                      hint="Après déduction des estrades des musiciens et des aménagements fixes autres que les tables et sièges."
+                    />
+                  ) : (
+                    <>
+                      <NumberField label="Nombre de billards non électriques ou électroniques" value={value("pBilliards")} onChange={(next) => setValue("pBilliards", next)} unit="billards" />
+                      <NumberField label="Places supplémentaires sur chaises, bancs ou gradins" value={value("pPublicPlaces")} onChange={(next) => setValue("pPublicPlaces", next)} unit="places" />
+                      <NumberField label="Effectif calculé de l’activité annexe de type N" value={value("pAnnexN")} onChange={(next) => setValue("pAnnexN", next)} unit="personnes" hint="À renseigner uniquement s’il existe une zone de consommation ou de restauration." />
+                    </>
+                  )}
+                </>
+              )}
+
+              {type === "R" && (
+                <NumberField
+                  label="Effectif maximal des personnes admises simultanément"
+                  value={value("rDeclared")}
+                  onChange={(next) => setValue("rDeclared", next)}
+                  unit="personnes"
+                  hint="Selon la déclaration contrôlée, qui doit préciser la capacité maximale par niveau."
+                />
               )}
 
               {type === "S" && (
