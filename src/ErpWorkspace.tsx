@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 
-type ErpType = "J" | "L" | "M" | "N";
+type ErpType = "J" | "L" | "M" | "N" | "S" | "T";
 type LActivity = "a" | "b" | "c" | "d" | "e" | "f" | "g";
 type LMode = "audience" | "meeting";
+type TMode = "temporary" | "permanent";
 type MMode = "general" | "mall" | "low" | "professional";
 type ShopLevel = "lower" | "second" | "upper";
 type MallShop = { id: number; surface: number; level: ShopLevel };
@@ -23,6 +24,8 @@ const ERP_TYPES: Array<{ code: ErpType; label: string; article: string }> = [
   { code: "L", label: "Salles d’auditions, conférences, réunions, spectacles ou polyvalentes", article: "L 3" },
   { code: "M", label: "Magasins de vente et centres commerciaux", article: "M 2" },
   { code: "N", label: "Restaurants et débits de boissons", article: "N 2" },
+  { code: "S", label: "Bibliothèques et centres de documentation", article: "S 2" },
+  { code: "T", label: "Salles d’expositions", article: "T 2" },
 ];
 
 const positive = (value: number) => Math.max(0, Number.isFinite(value) ? value : 0);
@@ -69,6 +72,7 @@ export function ErpWorkspace() {
   const [mMode, setMMode] = useState<MMode>("general");
   const [mallShops, setMallShops] = useState<MallShop[]>([{ id: 1, surface: 0, level: "lower" }]);
   const [nDeclared, setNDeclared] = useState(true);
+  const [tMode, setTMode] = useState<TMode>("temporary");
 
   const value = (key: string) => values[key] ?? 0;
   const setValue = (key: string, next: number) =>
@@ -172,12 +176,29 @@ export function ErpWorkspace() {
       );
     }
 
+    if (type === "S") {
+      rows.push({
+        label: "Effectif selon la déclaration du maître d’ouvrage ou du chef d’établissement",
+        value: occupancy(value("sDeclared")),
+      });
+    }
+
+    if (type === "T") {
+      const divisor = tMode === "temporary" ? 1 : 9;
+      rows.push({
+        label: tMode === "temporary"
+          ? "Exposition temporaire (1 pers./m²)"
+          : "Exposition permanente (1 pers./9 m²)",
+        value: occupancy(value("tPublicArea"), divisor),
+      });
+    }
+
     const visibleRows = rows.filter((row) => row.value > 0);
     return {
       rows: visibleRows,
       total: visibleRows.reduce((sum, row) => sum + row.value, 0),
     };
-  }, [lActivity, lMode, mMode, mallShops, nDeclared, type, values]);
+  }, [lActivity, lMode, mMode, mallShops, nDeclared, tMode, type, values]);
 
   const selected = ERP_TYPES.find((item) => item.code === type) ?? ERP_TYPES[0];
   const lBasementThreshold = lActivity === "c" || lActivity === "d" ? 20 : 100;
@@ -333,6 +354,35 @@ export function ErpWorkspace() {
                       <span>Seuil d’assujettissement non atteint avec les valeurs saisies.</span>
                     )}
                   </div>
+                </>
+              )}
+
+              {type === "S" && (
+                <NumberField
+                  label="Effectif maximal déclaré"
+                  value={value("sDeclared")}
+                  onChange={(next) => setValue("sDeclared", next)}
+                  unit="personnes"
+                  hint="Déclaration du maître d’ouvrage ou du chef d’établissement."
+                />
+              )}
+
+              {type === "T" && (
+                <>
+                  <label className="erp-mode-select">
+                    <span>Nature de l’exposition</span>
+                    <select value={tMode} onChange={(event) => setTMode(event.target.value as TMode)}>
+                      <option value="temporary">Exposition, foire-exposition ou salon temporaire</option>
+                      <option value="permanent">Exposition à caractère permanent</option>
+                    </select>
+                  </label>
+                  <NumberField
+                    label="Surface totale des salles accessibles au public"
+                    value={value("tPublicArea")}
+                    onChange={(next) => setValue("tPublicArea", next)}
+                    unit="m²"
+                    hint={tMode === "temporary" ? "Calcul : 1 personne par m²." : "Calcul : 1 personne pour 9 m²."}
+                  />
                 </>
               )}
 
