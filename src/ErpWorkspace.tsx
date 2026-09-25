@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 
 type ErpType = "J" | "L" | "M" | "N" | "O" | "P" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y";
+type JSubtype = "elderly" | "disabled";
 type LActivity = "a" | "b" | "c" | "d" | "e" | "f" | "g";
 type LMode = "audience" | "meeting";
 type TMode = "temporary" | "permanent";
@@ -79,6 +80,7 @@ function NumberField({
 export function ErpWorkspace() {
   const [type, setType] = useState<ErpType>("J");
   const [values, setValues] = useState<Record<string, number>>({});
+  const [jSubtype, setJSubtype] = useState<JSubtype>("elderly");
   const [lActivity, setLActivity] = useState<LActivity>("a");
   const [lMode, setLMode] = useState<LMode>("audience");
   const [lBasement, setLBasement] = useState<number | "">("");
@@ -349,6 +351,24 @@ export function ErpWorkspace() {
     value("nSeats") > 0 &&
     value("nSeatedArea") < value("nSeats") * 2;
 
+  const jResidentThreshold = jSubtype === "elderly" ? 25 : 20;
+  const jFirstGroup =
+    value("jResidents") >= jResidentThreshold || calculation.total >= 100;
+  const jCategory = !jFirstGroup
+    ? "5ᵉ catégorie"
+    : calculation.total > 1500
+      ? "1ʳᵉ catégorie"
+      : calculation.total >= 701
+        ? "2ᵉ catégorie"
+        : calculation.total >= 301
+          ? "3ᵉ catégorie"
+          : "4ᵉ catégorie";
+  const jClassificationReason = !jFirstGroup
+    ? `Les deux seuils du premier groupe restent non atteints : moins de ${jResidentThreshold} résidents et moins de 100 personnes au total.`
+    : value("jResidents") >= jResidentThreshold
+      ? `Premier groupe atteint par le seuil de ${jResidentThreshold} résidents ; la catégorie est ensuite déterminée avec l’effectif total.`
+      : "Premier groupe atteint par le seuil de 100 personnes au total ; la catégorie est ensuite déterminée avec l’effectif total.";
+
   return (
     <section className="erp-builder">
       <header className="erp-builder-heading">
@@ -387,6 +407,13 @@ export function ErpWorkspace() {
             <div className="erp-fields-grid">
               {type === "J" && (
                 <>
+                  <label className="erp-mode-select">
+                    <span>Nature de la structure de type J</span>
+                    <select value={jSubtype} onChange={(event) => setJSubtype(event.target.value as JSubtype)}>
+                      <option value="elderly">Accueil de personnes âgées</option>
+                      <option value="disabled">Accueil de personnes handicapées</option>
+                    </select>
+                  </label>
                   <NumberField label="Effectif maximal des résidents" value={value("jResidents")} onChange={(next) => setValue("jResidents", next)} unit="personnes" />
                   <NumberField label="Personnel en travail effectif" value={value("jStaff")} onChange={(next) => setValue("jStaff", next)} unit="personnes" />
                   <NumberField
@@ -806,6 +833,21 @@ export function ErpWorkspace() {
               <p>Complétez les données pour afficher le calcul.</p>
             )}
           </div>
+
+          {type === "J" && calculation.total > 0 && (
+            <div className="erp-calculation-rows" aria-live="polite">
+              <div>
+                <span>Classement ERP</span>
+                <b>{jCategory}</b>
+              </div>
+              <p>{jClassificationReason}</p>
+              {!jFirstGroup && calculation.total >= 7 && (
+                <p>
+                  Établissement du second groupe : les dispositions PE applicables aux petits établissements de type J avec locaux à sommeil doivent également être vérifiées.
+                </p>
+              )}
+            </div>
+          )}
 
           <p className="erp-rounding-note">
             Les résultats fractionnaires sont arrondis à l’entier supérieur.
