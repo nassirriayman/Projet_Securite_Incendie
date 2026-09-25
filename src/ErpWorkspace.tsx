@@ -369,6 +369,29 @@ export function ErpWorkspace() {
       ? `Premier groupe atteint par le seuil de ${jResidentThreshold} résidents ; la catégorie est ensuite déterminée avec l’effectif total.`
       : "Premier groupe atteint par le seuil de 100 personnes au total ; la catégorie est ensuite déterminée avec l’effectif total.";
 
+  const lClassificationReady =
+    calculation.total >= lTotalThreshold ||
+    (lBasement !== "" && !lBasementInvalid);
+  const lClassificationTotal = calculation.total + occupancy(value("lStaff"));
+  const lCategory = !lClassificationReady
+    ? "À déterminer"
+    : !lThresholdReached
+      ? "5ᵉ catégorie"
+      : lClassificationTotal > 1500
+        ? "1ʳᵉ catégorie"
+        : lClassificationTotal >= 701
+          ? "2ᵉ catégorie"
+          : lClassificationTotal >= 301
+            ? "3ᵉ catégorie"
+            : "4ᵉ catégorie";
+  const lClassificationReason = !lClassificationReady
+    ? "Renseignez l’effectif admis en sous-sol pour terminer le classement."
+    : !lThresholdReached
+      ? `Les seuils du premier groupe ne sont pas atteints : moins de ${lBasementThreshold} personnes en sous-sol et moins de ${lTotalThreshold} personnes au total.`
+      : calculation.total >= lTotalThreshold
+        ? `Premier groupe atteint par le seuil de ${lTotalThreshold} personnes au total. La catégorie est calculée sur ${lClassificationTotal} personnes, personnel compris.`
+        : `Premier groupe atteint par le seuil de ${lBasementThreshold} personnes en sous-sol. La catégorie est calculée sur ${lClassificationTotal} personnes, personnel compris.`;
+
   return (
     <section className="erp-builder">
       <header className="erp-builder-heading">
@@ -517,6 +540,13 @@ export function ErpWorkspace() {
                       <span>Seuil d’assujettissement non atteint avec les valeurs saisies.</span>
                     )}
                   </div>
+                  <NumberField
+                    label="Personnel à ajouter pour le classement en catégorie"
+                    value={value("lStaff")}
+                    onChange={(next) => setValue("lStaff", next)}
+                    unit="personnes"
+                    hint="Ne pas compter le personnel installé dans des locaux indépendants disposant de leurs propres dégagements. Ce nombre n’est pas ajouté à l’effectif du public de l’article L 3."
+                  />
                 </>
               )}
 
@@ -846,6 +876,20 @@ export function ErpWorkspace() {
                   Établissement du second groupe : les dispositions PE applicables aux petits établissements de type J avec locaux à sommeil doivent également être vérifiées.
                 </p>
               )}
+            </div>
+          )}
+
+          {type === "L" && calculation.total > 0 && (
+            <div className="erp-calculation-rows" aria-live="polite">
+              <div>
+                <span>Classement ERP</span>
+                <b>{lCategory}</b>
+              </div>
+              <div>
+                <span>Effectif retenu pour la catégorie</span>
+                <b>{lClassificationTotal}</b>
+              </div>
+              <p>{lClassificationReason}</p>
             </div>
           )}
 
