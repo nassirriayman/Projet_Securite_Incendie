@@ -83,7 +83,7 @@ export function ErpWorkspace() {
   const [jSubtype, setJSubtype] = useState<JSubtype>("elderly");
   const [lActivity, setLActivity] = useState<LActivity>("a");
   const [lMode, setLMode] = useState<LMode>("audience");
-  const [lBasement, setLBasement] = useState<number | "">("");
+  const [lBasement, setLBasement] = useState(0);
   const [mMode, setMMode] = useState<MMode>("general");
   const [mallShops, setMallShops] = useState<MallShop[]>([{ id: 1, surface: 0, level: "lower" }]);
   const [nDeclared, setNDeclared] = useState(true);
@@ -102,7 +102,7 @@ export function ErpWorkspace() {
     setValues((current) =>
       Object.fromEntries(Object.entries(current).filter(([key]) => !key.startsWith("l"))),
     );
-    setLBasement("");
+    setLBasement(0);
   };
 
   const addMallShop = () =>
@@ -341,10 +341,10 @@ export function ErpWorkspace() {
   const selected = ERP_TYPES.find((item) => item.code === type) ?? ERP_TYPES[0];
   const lBasementThreshold = lActivity === "c" || lActivity === "d" ? 20 : 100;
   const lTotalThreshold = lActivity === "c" || lActivity === "d" ? 50 : 200;
-  const lBasementInvalid = type === "L" && lBasement !== "" && lBasement > calculation.total;
+  const lBasementInvalid = type === "L" && lBasement > calculation.total;
   const lThresholdReached =
     calculation.total >= lTotalThreshold ||
-    (lBasement !== "" && !lBasementInvalid && lBasement >= lBasementThreshold);
+    (!lBasementInvalid && lBasement >= lBasementThreshold);
   const nDeclarationInvalid =
     type === "N" &&
     nDeclared &&
@@ -369,12 +369,9 @@ export function ErpWorkspace() {
       ? `Premier groupe atteint par le seuil de ${jResidentThreshold} résidents ; la catégorie est ensuite déterminée avec l’effectif total.`
       : "Premier groupe atteint par le seuil de 100 personnes au total ; la catégorie est ensuite déterminée avec l’effectif total.";
 
-  const lClassificationReady =
-    calculation.total >= lTotalThreshold ||
-    (lBasement !== "" && !lBasementInvalid);
   const lClassificationTotal = calculation.total + occupancy(value("lStaff"));
-  const lCategory = !lClassificationReady
-    ? "À déterminer"
+  const lCategory = lBasementInvalid
+    ? "Valeur à corriger"
     : !lThresholdReached
       ? "5ᵉ catégorie"
       : lClassificationTotal > 1500
@@ -384,8 +381,8 @@ export function ErpWorkspace() {
           : lClassificationTotal >= 301
             ? "3ᵉ catégorie"
             : "4ᵉ catégorie";
-  const lClassificationReason = !lClassificationReady
-    ? "Renseignez l’effectif admis en sous-sol pour terminer le classement."
+  const lClassificationReason = lBasementInvalid
+    ? "L’effectif indiqué en sous-sol ne peut pas dépasser l’effectif total du public."
     : !lThresholdReached
       ? `Les seuils du premier groupe ne sont pas atteints : moins de ${lBasementThreshold} personnes en sous-sol et moins de ${lTotalThreshold} personnes au total.`
       : calculation.total >= lTotalThreshold
@@ -511,35 +508,13 @@ export function ErpWorkspace() {
                     </>
                   )}
 
-                  <div className="erp-mode-select">
-                    <strong>L 1 § 2 · Seuil d’assujettissement</strong>
-                    <span>{lBasementThreshold} personnes en sous-sol ou {lTotalThreshold} personnes au total.</span>
-                    <label className="erp-number-field">
-                      <span>Dont personnes admises en sous-sol (comprises dans le total)</span>
-                      <div>
-                        <input
-                          type="number"
-                          min="0"
-                          step="1"
-                          value={lBasement}
-                          placeholder="À renseigner"
-                          onChange={(event) =>
-                            setLBasement(event.target.value === "" ? "" : Math.max(0, Math.floor(Number(event.target.value))))
-                          }
-                        />
-                        <small>personnes</small>
-                      </div>
-                    </label>
-                    {lBasementInvalid ? (
-                      <span>Vérifiez l’effectif en sous-sol : il dépasse l’effectif total calculé.</span>
-                    ) : lThresholdReached ? (
-                      <span>Seuil d’assujettissement atteint.</span>
-                    ) : lBasement === "" ? (
-                      <span>Renseignez l’effectif en sous-sol pour vérifier ce seuil.</span>
-                    ) : (
-                      <span>Seuil d’assujettissement non atteint avec les valeurs saisies.</span>
-                    )}
-                  </div>
+                  <NumberField
+                    label="Effectif du public présent en sous-sol"
+                    value={lBasement}
+                    onChange={(next) => setLBasement(Math.floor(next))}
+                    unit="personnes"
+                    hint="Laissez 0 si aucun public n’est accueilli en sous-sol. Cette valeur est comprise dans l’effectif total et sert automatiquement au classement."
+                  />
                   <NumberField
                     label="Personnel à ajouter pour le classement en catégorie"
                     value={value("lStaff")}
