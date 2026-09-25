@@ -1,10 +1,14 @@
 import { useMemo, useState } from "react";
 
-type ErpType = "J" | "L" | "M" | "N" | "O" | "P" | "R" | "S" | "T";
+type ErpType = "J" | "L" | "M" | "N" | "O" | "P" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y";
 type LActivity = "a" | "b" | "c" | "d" | "e" | "f" | "g";
 type LMode = "audience" | "meeting";
 type TMode = "temporary" | "permanent";
 type PMode = "general" | "billiard";
+type UVisitorMode = "standard" | "reduced";
+type VMode = "seats" | "standing";
+type WMode = "declared" | "planned" | "unplanned";
+type XMode = "omnisports" | "ice" | "sportsHall" | "indoorPool" | "outdoorPool" | "mixedPool";
 type MMode = "general" | "mall" | "low" | "professional";
 type ShopLevel = "lower" | "second" | "upper";
 type MallShop = { id: number; surface: number; level: ShopLevel };
@@ -30,6 +34,11 @@ const ERP_TYPES: Array<{ code: ErpType; label: string; article: string }> = [
   { code: "R", label: "Établissements d’enseignement, de formation et centres de loisirs", article: "R 2" },
   { code: "S", label: "Bibliothèques et centres de documentation", article: "S 2" },
   { code: "T", label: "Salles d’expositions", article: "T 2" },
+  { code: "U", label: "Établissements sanitaires", article: "U 2" },
+  { code: "V", label: "Établissements de culte", article: "V 2" },
+  { code: "W", label: "Administrations, banques et bureaux", article: "W 2" },
+  { code: "X", label: "Établissements sportifs couverts", article: "X 2" },
+  { code: "Y", label: "Musées", article: "Y 2" },
 ];
 
 const positive = (value: number) => Math.max(0, Number.isFinite(value) ? value : 0);
@@ -78,6 +87,10 @@ export function ErpWorkspace() {
   const [nDeclared, setNDeclared] = useState(true);
   const [tMode, setTMode] = useState<TMode>("temporary");
   const [pMode, setPMode] = useState<PMode>("general");
+  const [uVisitorMode, setUVisitorMode] = useState<UVisitorMode>("standard");
+  const [vMode, setVMode] = useState<VMode>("seats");
+  const [wMode, setWMode] = useState<WMode>("declared");
+  const [xMode, setXMode] = useState<XMode>("omnisports");
 
   const value = (key: string) => values[key] ?? 0;
   const setValue = (key: string, next: number) =>
@@ -227,12 +240,101 @@ export function ErpWorkspace() {
       });
     }
 
+    if (type === "U") {
+      const visitorDivisor = uVisitorMode === "reduced" ? 2 : 1;
+      rows.push(
+        { label: "Patients ou résidents (1 personne par lit)", value: occupancy(value("uBeds")) },
+        { label: "Personnel (1 personne pour 3 lits)", value: occupancy(value("uBeds"), 3) },
+        { label: `Visiteurs (1 personne pour ${visitorDivisor} lit${visitorDivisor > 1 ? "s" : ""})`, value: occupancy(value("uBeds"), visitorDivisor) },
+        { label: "Consultations ou explorations externes (8 personnes par poste)", value: occupancy(value("uConsultations") * 8) },
+        { label: "Locaux de la section XIV — effectif déclaré", value: occupancy(value("uSection14")) },
+        { label: "Autres salles ou locaux recevant du public", value: occupancy(value("uOtherRooms")) },
+      );
+    }
+
+    if (type === "V") {
+      if (vMode === "seats") {
+        rows.push(
+          { label: "Sièges", value: occupancy(value("vSeats")) },
+          { label: "Bancs (2 personnes par mètre)", value: occupancy(value("vBenches") * 2) },
+        );
+      } else {
+        rows.push({ label: "Surface réservée aux fidèles (2 pers./m²)", value: occupancy(value("vStandingArea") * 2) });
+      }
+    }
+
+    if (type === "W") {
+      if (wMode === "declared") {
+        rows.push({ label: "Effectif déclaré par le maître d’ouvrage", value: occupancy(value("wDeclared")) });
+      } else if (wMode === "planned") {
+        rows.push({ label: "Locaux spécialement aménagés pour le public (1 pers./10 m²)", value: occupancy(value("wPublicArea"), 10) });
+      } else {
+        rows.push({ label: "Aménagements non prévus (1 pers./100 m²)", value: occupancy(value("wFloorArea"), 100) });
+      }
+    }
+
+    if (type === "X") {
+      const spectators =
+        occupancy(value("xSpectatorSeats")) +
+        occupancy(value("xSpectatorBenches") * 2) +
+        occupancy(value("xSpectatorPromenades") * 5);
+      let regulatory = 0;
+      let rule = "";
+
+      if (xMode === "omnisports") {
+        const practice = value("xActivityArea");
+        regulatory = Math.max(
+          occupancy(practice, 4) + occupancy(value("xTennisCourts") * 25),
+          occupancy(practice, 8) + spectators,
+        );
+        rule = "Salle omnisports : valeur réglementaire la plus élevée";
+      } else if (xMode === "ice") {
+        regulatory = Math.max(
+          occupancy(value("xIceArea") * 2, 3),
+          occupancy(value("xIceArea"), 10) + spectators,
+        );
+        rule = "Patinoire : valeur réglementaire la plus élevée";
+      } else if (xMode === "sportsHall") {
+        regulatory = occupancy(value("xSportsHallArea")) + spectators;
+        rule = "Salle polyvalente sportive (1 pers./m² + spectateurs)";
+      } else if (xMode === "indoorPool") {
+        regulatory = Math.max(
+          occupancy(value("xIndoorWaterArea")),
+          occupancy(value("xIndoorWaterArea"), 5) + spectators,
+        );
+        rule = "Piscine couverte : valeur réglementaire la plus élevée";
+      } else if (xMode === "outdoorPool") {
+        regulatory = Math.max(
+          occupancy(value("xOutdoorWaterArea") * 3, 2),
+          occupancy(value("xOutdoorWaterArea"), 5) + spectators,
+        );
+        rule = "Piscine transformable découverte : valeur réglementaire la plus élevée";
+      } else {
+        const covered = value("xMixedCoveredArea");
+        const uncovered = value("xMixedUncoveredArea");
+        regulatory = Math.max(
+          occupancy(covered) + occupancy(uncovered * 3, 2),
+          occupancy(covered + uncovered, 5) + spectators,
+        );
+        rule = "Piscine mixte : valeur réglementaire la plus élevée";
+      }
+
+      rows.push({
+        label: `${rule} (comparée à la déclaration)`,
+        value: Math.max(regulatory, occupancy(value("xDeclared"))),
+      });
+    }
+
+    if (type === "Y") {
+      rows.push({ label: "Salles accessibles au public (1 pers./5 m²)", value: occupancy(value("yPublicArea"), 5) });
+    }
+
     const visibleRows = rows.filter((row) => row.value > 0);
     return {
       rows: visibleRows,
       total: visibleRows.reduce((sum, row) => sum + row.value, 0),
     };
-  }, [lActivity, lMode, mMode, mallShops, nDeclared, pMode, tMode, type, values]);
+  }, [lActivity, lMode, mMode, mallShops, nDeclared, pMode, tMode, type, uVisitorMode, vMode, wMode, xMode, values]);
 
   const selected = ERP_TYPES.find((item) => item.code === type) ?? ERP_TYPES[0];
   const lBasementThreshold = lActivity === "c" || lActivity === "d" ? 20 : 100;
@@ -465,6 +567,106 @@ export function ErpWorkspace() {
                     hint={tMode === "temporary" ? "Calcul : 1 personne par m²." : "Calcul : 1 personne pour 9 m²."}
                   />
                 </>
+              )}
+
+              {type === "U" && (
+                <>
+                  <NumberField label="Nombre de lits" value={value("uBeds")} onChange={(next) => setValue("uBeds", next)} unit="lits" />
+                  <label className="erp-mode-select">
+                    <span>Base de calcul des visiteurs</span>
+                    <select value={uVisitorMode} onChange={(event) => setUVisitorMode(event.target.value as UVisitorMode)}>
+                      <option value="standard">Règle générale — 1 visiteur par lit</option>
+                      <option value="reduced">Cas visés à l’article U 1 — 1 visiteur pour 2 lits</option>
+                    </select>
+                  </label>
+                  <NumberField label="Postes de consultation ou d’exploration externe" value={value("uConsultations")} onChange={(next) => setValue("uConsultations", next)} unit="postes" hint="Calcul : 8 personnes, personnel compris, par poste." />
+                  <NumberField label="Effectif déclaré des locaux de la section XIV" value={value("uSection14")} onChange={(next) => setValue("uSection14", next)} unit="personnes" />
+                  <NumberField label="Effectif des autres salles ou locaux recevant du public" value={value("uOtherRooms")} onChange={(next) => setValue("uOtherRooms", next)} unit="personnes" hint="À calculer selon le type d’exploitation du local." />
+                </>
+              )}
+
+              {type === "V" && (
+                <>
+                  <label className="erp-mode-select">
+                    <span>Configuration de l’établissement de culte</span>
+                    <select value={vMode} onChange={(event) => setVMode(event.target.value as VMode)}>
+                      <option value="seats">Avec sièges ou bancs</option>
+                      <option value="standing">Sans siège</option>
+                    </select>
+                  </label>
+                  {vMode === "seats" ? (
+                    <>
+                      <NumberField label="Nombre de sièges" value={value("vSeats")} onChange={(next) => setValue("vSeats", next)} unit="sièges" />
+                      <NumberField label="Longueur totale des bancs" value={value("vBenches")} onChange={(next) => setValue("vBenches", next)} unit="m" hint="Calcul : 1 personne par 0,50 m de banc." />
+                    </>
+                  ) : (
+                    <NumberField label="Surface réservée aux fidèles" value={value("vStandingArea")} onChange={(next) => setValue("vStandingArea", next)} unit="m²" hint="Calcul : 2 personnes par m²." />
+                  )}
+                </>
+              )}
+
+              {type === "W" && (
+                <>
+                  <label className="erp-mode-select">
+                    <span>Méthode de détermination</span>
+                    <select value={wMode} onChange={(event) => setWMode(event.target.value as WMode)}>
+                      <option value="declared">Déclaration du maître d’ouvrage</option>
+                      <option value="planned">Aménagements intérieurs prévus</option>
+                      <option value="unplanned">Aménagements intérieurs non prévus</option>
+                    </select>
+                  </label>
+                  {wMode === "declared" && <NumberField label="Effectif maximal déclaré" value={value("wDeclared")} onChange={(next) => setValue("wDeclared", next)} unit="personnes" />}
+                  {wMode === "planned" && <NumberField label="Surface des locaux aménagés pour recevoir le public" value={value("wPublicArea")} onChange={(next) => setValue("wPublicArea", next)} unit="m²" hint="Halls, guichets, salles d’attente, etc. : 1 personne pour 10 m²." />}
+                  {wMode === "unplanned" && <NumberField label="Surface totale de planchers" value={value("wFloorArea")} onChange={(next) => setValue("wFloorArea", next)} unit="m²" hint="Calcul : 1 personne pour 100 m²." />}
+                </>
+              )}
+
+              {type === "X" && (
+                <>
+                  <label className="erp-mode-select">
+                    <span>Installation sportive</span>
+                    <select value={xMode} onChange={(event) => setXMode(event.target.value as XMode)}>
+                      <option value="omnisports">Salle omnisports ou sportive spécialisée</option>
+                      <option value="ice">Patinoire</option>
+                      <option value="sportsHall">Salle polyvalente à dominante sportive</option>
+                      <option value="indoorPool">Piscine couverte</option>
+                      <option value="outdoorPool">Piscine transformable découverte</option>
+                      <option value="mixedPool">Piscine mixte</option>
+                    </select>
+                  </label>
+                  <NumberField label="Effectif déclaré par le maître d’ouvrage" value={value("xDeclared")} onChange={(next) => setValue("xDeclared", next)} unit="personnes" hint="Le calcul retient automatiquement la valeur la plus élevée entre la déclaration et les densités réglementaires." />
+
+                  {xMode === "omnisports" && (
+                    <>
+                      <NumberField label="Aire d’activité sportive hors courts de tennis" value={value("xActivityArea")} onChange={(next) => setValue("xActivityArea", next)} unit="m²" />
+                      <NumberField label="Nombre de courts de tennis" value={value("xTennisCourts")} onChange={(next) => setValue("xTennisCourts", next)} unit="courts" hint="25 personnes par court pour la première valeur réglementaire." />
+                    </>
+                  )}
+                  {xMode === "ice" && <NumberField label="Surface du plan de patinage" value={value("xIceArea")} onChange={(next) => setValue("xIceArea", next)} unit="m²" />}
+                  {xMode === "sportsHall" && <NumberField label="Aire d’activité sportive" value={value("xSportsHallArea")} onChange={(next) => setValue("xSportsHallArea", next)} unit="m²" />}
+                  {xMode === "indoorPool" && <NumberField label="Surface du plan d’eau couvert" value={value("xIndoorWaterArea")} onChange={(next) => setValue("xIndoorWaterArea", next)} unit="m²" hint="Ne pas inclure les bassins de plongeon indépendants ni les pataugeoires." />}
+                  {xMode === "outdoorPool" && <NumberField label="Surface du plan d’eau découvert" value={value("xOutdoorWaterArea")} onChange={(next) => setValue("xOutdoorWaterArea", next)} unit="m²" hint="Ne pas inclure les bassins de plongeon indépendants ni les pataugeoires." />}
+                  {xMode === "mixedPool" && (
+                    <>
+                      <NumberField label="Surface du plan d’eau couvert" value={value("xMixedCoveredArea")} onChange={(next) => setValue("xMixedCoveredArea", next)} unit="m²" />
+                      <NumberField label="Surface du plan d’eau découvert" value={value("xMixedUncoveredArea")} onChange={(next) => setValue("xMixedUncoveredArea", next)} unit="m²" />
+                    </>
+                  )}
+
+                  <NumberField label="Spectateurs assis sur sièges ou strapontins" value={value("xSpectatorSeats")} onChange={(next) => setValue("xSpectatorSeats", next)} unit="personnes" />
+                  <NumberField label="Longueur des bancs de spectateurs" value={value("xSpectatorBenches")} onChange={(next) => setValue("xSpectatorBenches", next)} unit="m" hint="Calcul : 1 personne par 0,50 m." />
+                  <NumberField label="Longueur des promenoirs pour spectateurs debout" value={value("xSpectatorPromenades")} onChange={(next) => setValue("xSpectatorPromenades", next)} unit="m" hint="Calcul : 5 personnes par mètre linéaire." />
+                </>
+              )}
+
+              {type === "Y" && (
+                <NumberField
+                  label="Surface des salles accessibles au public"
+                  value={value("yPublicArea")}
+                  onChange={(next) => setValue("yPublicArea", next)}
+                  unit="m²"
+                  hint="Calcul théorique : 1 personne pour 5 m²."
+                />
               )}
 
               {type === "M" && (
